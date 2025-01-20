@@ -5,7 +5,7 @@
 from __future__ import absolute_import, division, print_function
 from ansible.module_utils.basic import AnsibleModule
 from typing import Callable, Any
-from datetime import datetime
+from datetime import datetime, timedelta
 import requests
 import logging
 import os
@@ -200,7 +200,7 @@ def run_module():
         module.exit_json(**result)
 
     ending_date: datetime = datetime.now()
-    beginning_date: datetime = datetime(year=ending_date.year, month=ending_date.month, day=1, hour=0, minute=0, second=0)
+    beginning_date: datetime = ending_date - timedelta(days=365)
     late_notice_resp: dict = run_late_notices_report(
         api_url=api_url, api_token=api_token, api_log_directory=api_log_directory, beginning_date=beginning_date, ending_date=ending_date
     )
