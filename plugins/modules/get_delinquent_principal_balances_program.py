@@ -226,10 +226,9 @@ def run_module():
                 )
             base64_file = trial_resp.get("Document", {}).get("DocumentBase64", None)
             if base64_file:
-                txt_data = base64.b64decode(base64_file)
-
-
-
+                delinquent_report = base64.b64decode(base64_file)
+                with open(module.params["dest"], "wb") as delinquent_report_file:
+                    delinquent_report_file.write(delinquent_report)
                 result["changed"] = True
                 result["failed"] = False
                 result["msg"] = f"Wrote file at {module.params['dest']}"
