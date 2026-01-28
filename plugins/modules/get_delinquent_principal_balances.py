@@ -214,6 +214,13 @@ def run_module():
         api_due_date=api_due_date,
     )
 
+    if trial_resp is None:
+    module.fail_json(
+        msg="API call returned no response (check HTTP status code in logs)",
+        changed=False,
+        failed=True,
+    )
+
     try:
         if trial_resp.get("ApiCallSuccessful", None):
             try:
