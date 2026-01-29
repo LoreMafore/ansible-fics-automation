@@ -215,10 +215,10 @@ def run_module():
     )
 
     if trial_resp is None:
-    module.fail_json(
-        msg="API call returned no response (check HTTP status code in logs)",
-        changed=False,
-        failed=True,
+        module.fail_json(
+            msg="API call returned no response (check HTTP status code in logs)",
+            changed=False,
+            failed=True,
     )
 
     try:
