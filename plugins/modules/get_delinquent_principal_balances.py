@@ -63,7 +63,20 @@ EXAMPLES = r"""
 """
 
 RETURN = r"""
-    This returns a base64-encoded file 
+msg:
+    description: The result message of the download operation
+    type: str
+    returned: always
+    sample: '"Wrote files to /mnt/fics_deliq/IT/Backups/fics/delinquent_principal_balance_2026-02-07"'
+changed:
+    description: Whether any local files were changed
+    type: bool
+    returned: always
+    sample: true
+api_response:
+    description: Document{Base64encoded document}
+    type: str
+    returned: always
 """
 
 
