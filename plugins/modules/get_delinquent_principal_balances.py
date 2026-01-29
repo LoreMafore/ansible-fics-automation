@@ -143,24 +143,10 @@ def get_delinquent_principal_balances(
 ) -> dict:
     params: dict = {
         "Message":{
-            "InvestorSelection":[
-                {
-                    "Bank": "sample string",
-                    "Investor": "sample string",
-                    "Group": "sample string",
-                },
-                {
-                    "Bank": "sample string",
-                    "Investor": "sample string",
-                    "Group": "sample string",
-                },
-            ],
             "DueDate": api_due_date,
             "SortBy": True,
-            "IsWidget": True, 
             "SystemDate": datetime.now().isoformat(timespec='seconds'),
             "Token": api_token,
-            "ApiParameters": "sample string",
         }
     }
     return log_function_call(
