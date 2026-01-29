@@ -63,6 +63,7 @@ EXAMPLES = r"""
 """
 
 RETURN = r"""
+    This returns a base64-encoded file 
 """
 
 
