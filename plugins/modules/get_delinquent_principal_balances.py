@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
-# Copyright: (c) 2026, Conrad Mercer <conrad.mercer@capcu.org>
+# Copyright: (c) 2026, Conrad Mercer <momercers@gmail.com>
+#                      David Villafaña <david.villafana@capcu.org>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 from __future__ import absolute_import, division, print_function
 from ansible.module_utils.basic import AnsibleModule
@@ -54,8 +55,8 @@ options:
 
 EXAMPLES = r"""
 - name: create file to send
-  allied_insurance_interface_program:
-    dest: /mnt/fics/Mortgage Services/MS_TEST/Deliquent Balances/file.txt
+  get_delinquent_principal_balances:
+    dest: /mnt/fics_deliq/IT/Backups/fics/delinquent_principal_balance_2026-02-07
     fics_api_url: http://mortgageservicer.fics/BatchService.svc/REST/
     api_token: ASDFASDFJSDFSHFJJSDGFSJGQWEUI123123SDFSDFJ12312801C15034264BC98B33619F4A547AECBDD412D46A24D2560D5EFDD8DEDFE74325DC2E7B156C60B942
     api_due_date: 2026-01-31T23:59:59"
@@ -145,7 +146,7 @@ def get_delinquent_principal_balances(
         "Message":{
             "DueDate": api_due_date,
             "SortBy": True,
-            "SystemDate": datetime.now().isoformat(timespec='seconds'),
+            "SystemDate": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
             "Token": api_token,
         }
     }
