@@ -154,7 +154,7 @@ def get_delinquent_principal_balances(
         call_api,
         base_url=api_url,
         method="post",
-        endpoint="GetDelinquentPrincipalBalances",
+        endpoint="GetManageDelinqPrinBalanceReportData",
         parameters=params,
     )
 
