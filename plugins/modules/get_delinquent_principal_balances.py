@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Copyright: (c) 2024, David Villafaña <david.villafana@capcu.org>
+# Copyright: (c) 2026, Conrad Mercer <conrad.mercer@capcu.org>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 from __future__ import absolute_import, division, print_function
 from ansible.module_utils.basic import AnsibleModule
@@ -21,7 +21,7 @@ short_description: Calls the FICS Mortgage Servicer special services API to gene
 
 # If this is part of a collection, you need to use semantic versioning,
 # i.e. the version is of the form "2.5.0" and not "2.4".
-version_added: "1.0.0"
+version_added: "3.1.0"
 
 description:
     - Calls the FICS Mortgage Servicer special services API to create the Delinquent Principal Balances file at the specified destination. 
