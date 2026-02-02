@@ -8,5 +8,4 @@ Ansible collection for FICS products
 - run_late_notices_report
 - get_advanced_selector_request
 - process_window_object_data
-- allied_insurance_interface_program
-
+- get_delinquent_principal_balances
