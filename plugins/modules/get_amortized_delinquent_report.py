@@ -159,6 +159,8 @@ def get_amortized_delinquent(
     params: dict = {
         "Message":{
             "DueDate": api_due_date,
+            "IncludeForeclosedLoans": False,
+            "Summarize": False,
             "SystemDate": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
             "Token": api_token,
         }
