@@ -233,7 +233,7 @@ def run_module():
                     changed=False,
                     failed=True,
                 )
-            base64_file = trial_resp.get("Document", {}).get("DocumentBase64", None)
+            base64_file = trial_resp.get("ReportDocument", {}).get("DocumentBase64", None)
             if base64_file:
                 amortized_delinquent_report = base64.b64decode(base64_file)
                 with open(module.params["dest"], "wb") as amortized_delinquent_report_file:
