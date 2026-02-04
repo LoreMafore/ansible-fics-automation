@@ -213,7 +213,7 @@ def get_interest_accrual(
         call_api,
         base_url=api_url,
         method="post",
-        endpoint="ProcessAmortizedDelinquentReportData",
+        endpoint="RunInterestAccural",
         parameters=params,
     )
 
