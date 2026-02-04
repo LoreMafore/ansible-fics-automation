@@ -24,7 +24,7 @@ authors:
 description: Ansible collection for FICS ansible modules
 
 # Either a single license or a list of licenses for content inside of a collection. Ansible Galaxy currently only
-# accepts L(SPDX,https://spdx.org/licenses/) licenses. This key is mutually exclusive with 'license_file'
+# accepts L(SPDX,https://spdx.org/licenses/) licenses. This key is mutually exclusive w;ith 'license_file'
 license:
  - MIT
 
