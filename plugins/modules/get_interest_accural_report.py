@@ -17,16 +17,16 @@ __metaclass__ = type
 
 DOCUMENTATION = r"""
 ---
-module: get_interest_accural_report
+module: get_interest_accrual_report
 
-short_description: Calls the FICS Mortgage Servicer special services API to generate a document containing all the Interest Accural Reports.
+short_description: Calls the FICS Mortgage Servicer special services API to generate a document containing all the Interest Accrual Reports.
 
 # If this is part of a collection, you need to use semantic versioning,
 # i.e. the version is of the form "2.5.0" and not "2.4".
 version_added: "3.3.0"
 
 description:
-    - Calls the FICS Mortgage Servicer special services API to create the Interest Accural Reports file at the specified destination.
+    - Calls the FICS Mortgage Servicer special services API to create the Interest Accrual Reports file at the specified destination.
     - Disclaimer: this module has only been tested for our exact use case
 
 author:
@@ -56,8 +56,8 @@ options:
 
 EXAMPLES = r"""
 - name: create file to send
-  get_interest_accural_report:
-    dest: /mnt/fics_deliq/IT/Backups/fics/interest_accural_report.pdf
+  get_interest_accrual_report:
+    dest: /mnt/fics_deliq/IT/Backups/fics/interest_accrual_report.pdf
     fics_api_url: http://mortgageservicer.fics/BatchService.svc/REST/
     api_token: ASDFASDFJSDFSHFJJSDGFSJGQWEUI123123SDFSDFJ12312801C15034264BC98B33619F4A547AECBDD412D46A24D2560D5EFDD8DEDFE74325DC2E7B156C60B942
     api_due_date: 2026-01-31T23:59:59"
@@ -68,7 +68,7 @@ msg:
     description: The result message of the download operation
     type: str
     returned: always
-    sample: '"Wrote files to /mnt/fics_deliq/IT/Backups/fics/interest_accural_report.pdf"'
+    sample: '"Wrote files to /mnt/fics_deliq/IT/Backups/fics/interest_accrual_report.pdf"'
 changed:
     description: Whether any local files were changed
     type: bool
@@ -152,6 +152,7 @@ def call_api(base_url: str, method: str, endpoint: str, parameters: dict):
         )
         return None
 
+
 def get_start_date(due_date):
     current_date = datetime.fromisoformat(due_date)
 
@@ -165,6 +166,7 @@ def get_start_date(due_date):
 
     day_1 = current_date.replace(year=prev_year, month=prev_month, day=1, hour=0, minute=0, second=0)
     return day_1.isoformat()
+
 
 def get_end_date(due_date):
     current_date = datetime.fromisoformat(due_date)
@@ -182,7 +184,7 @@ def get_end_date(due_date):
     return day_n.isoformat()
 
 
-def get_interest_accural(
+def get_interest_accrual(
     api_url: str, 
     api_token: str, 
     api_log_directory: str,
@@ -250,7 +252,7 @@ def run_module():
     if module.check_mode:
         module.exit_json(**result)
 
-    trial_resp: dict = get_interest_accural(
+    trial_resp: dict = get_interest_accrual(
         api_url=api_url, 
         api_token=api_token, 
         api_log_directory=api_log_directory,
@@ -276,9 +278,9 @@ def run_module():
                 )
             base64_file = trial_resp.get("DocumentCollection", {}).get("DocumentBase64", None)
             if base64_file:
-                interest_accural_report = base64.b64decode(base64_file)
-                with open(module.params["dest"], "wb") as interest_accural_report_file:
-                    interest_accural_report_file.write(interest_accural_report)
+                interest_accrual_report = base64.b64decode(base64_file)
+                with open(module.params["dest"], "wb") as interest_accrual_report_file:
+                    interest_accrual_report_file.write(interest_accrual_report)
                 result["changed"] = True
                 result["failed"] = False
                 result["msg"] = f"Wrote file at {module.params['dest']}"
