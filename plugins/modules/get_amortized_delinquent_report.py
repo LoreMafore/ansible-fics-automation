@@ -16,7 +16,7 @@ __metaclass__ = type
 
 DOCUMENTATION = r"""
 ---
-module: get_amortized_delinquent
+module: get_amortized_delinquent_report
 
 short_description: Calls the FICS Mortgage Servicer special services API to generate a document containing all the Amortized Delinquent Reports.
 
@@ -55,7 +55,7 @@ options:
 
 EXAMPLES = r"""
 - name: create file to send
-  get_delinquent_principal_balances:
+  get_amortized_delinquent_report:
     dest: /mnt/fics_deliq/IT/Backups/fics/amortized_delinquent_report.pdf
     fics_api_url: http://mortgageservicer.fics/BatchService.svc/REST/
     api_token: ASDFASDFJSDFSHFJJSDGFSJGQWEUI123123SDFSDFJ12312801C15034264BC98B33619F4A547AECBDD412D46A24D2560D5EFDD8DEDFE74325DC2E7B156C60B942
