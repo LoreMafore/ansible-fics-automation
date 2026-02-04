@@ -16,7 +16,7 @@ __metaclass__ = type
 
 DOCUMENTATION = r"""
 ---
-module: get_delinquent_principal_balances
+module: get_amortized_delinquent
 
 short_description: Calls the FICS Mortgage Servicer special services API to generate a document containing all the Amortized Delinquent Reports.
 
