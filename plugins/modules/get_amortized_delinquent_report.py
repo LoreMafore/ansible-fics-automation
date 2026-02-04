@@ -18,14 +18,14 @@ DOCUMENTATION = r"""
 ---
 module: get_delinquent_principal_balances
 
-short_description: Calls the FICS Mortgage Servicer special services API to generate a document containing all the Delinquent Principal Balances.
+short_description: Calls the FICS Mortgage Servicer special services API to generate a document containing all the Amortized Delinquent Reports.
 
 # If this is part of a collection, you need to use semantic versioning,
 # i.e. the version is of the form "2.5.0" and not "2.4".
-version_added: "3.1.0"
+version_added: "3.2.0"
 
 description:
-    - Calls the FICS Mortgage Servicer special services API to create the Delinquent Principal Balances file at the specified destination. 
+    - Calls the FICS Mortgage Servicer special services API to create the Amortized Delinquent Reports file at the specified destination.
     - Disclaimer: this module has only been tested for our exact use case
 
 author:
@@ -56,7 +56,7 @@ options:
 EXAMPLES = r"""
 - name: create file to send
   get_delinquent_principal_balances:
-    dest: /mnt/fics_deliq/IT/Backups/fics/delinquent_principal_balance_2026-02-07
+    dest: /mnt/fics_deliq/IT/Backups/fics/amortized_delinquent_report.pdf
     fics_api_url: http://mortgageservicer.fics/BatchService.svc/REST/
     api_token: ASDFASDFJSDFSHFJJSDGFSJGQWEUI123123SDFSDFJ12312801C15034264BC98B33619F4A547AECBDD412D46A24D2560D5EFDD8DEDFE74325DC2E7B156C60B942
     api_due_date: 2026-01-31T23:59:59"
@@ -67,7 +67,7 @@ msg:
     description: The result message of the download operation
     type: str
     returned: always
-    sample: '"Wrote files to /mnt/fics_deliq/IT/Backups/fics/delinquent_principal_balance_2026-02-07"'
+    sample: '"Wrote files to /mnt/fics_deliq/IT/Backups/fics/amortized_delinquent_report.pdf"'
 changed:
     description: Whether any local files were changed
     type: bool
