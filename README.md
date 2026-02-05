@@ -11,3 +11,4 @@ Ansible collection for FICS products
 - get_delinquent_principal_balances
 - get_amortized_delinquent_report
 - get_interest_accural_report
+- get_ffiec_call_report

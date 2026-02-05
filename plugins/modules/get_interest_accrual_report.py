@@ -51,7 +51,10 @@ options:
         description: this is the date the application is due
         required: true
         type: str
-
+    api_log_directory:
+        description: this is the directory that the API logs will be created in
+        required: false
+        type: str
 """
 
 EXAMPLES = r"""
@@ -61,6 +64,7 @@ EXAMPLES = r"""
     fics_api_url: http://mortgageservicer.fics/BatchService.svc/REST/
     api_token: ASDFASDFJSDFSHFJJSDGFSJGQWEUI123123SDFSDFJ12312801C15034264BC98B33619F4A547AECBDD412D46A24D2560D5EFDD8DEDFE74325DC2E7B156C60B942
     api_due_date: 2026-01-31T23:59:59"
+    api_log_directory: /tmp/api_logs/
 """
 
 RETURN = r"""
