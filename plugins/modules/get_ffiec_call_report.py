@@ -144,7 +144,7 @@ def call_api(base_url: str, method: str, endpoint: str, parameters: dict):
         return None
 
 
-def get_delinquent_principal_balances(
+def get_ffiec_call_report(
     api_url: str, 
     api_token: str, 
     api_log_directory: str,
@@ -160,7 +160,7 @@ def get_delinquent_principal_balances(
         call_api,
         base_url=api_url,
         method="post",
-        endpoint="GetManageDelinqPrinBalanceReportData",
+        endpoint="GetFFIECReportLoans",
         parameters=params,
     )
 
@@ -197,7 +197,7 @@ def run_module():
     if module.check_mode:
         module.exit_json(**result)
 
-    trial_resp: dict = get_delinquent_principal_balances(
+    trial_resp: dict = get_ffiec_call_report(
         api_url=api_url, 
         api_token=api_token, 
         api_log_directory=api_log_directory,
@@ -222,9 +222,9 @@ def run_module():
                 )
             base64_file = trial_resp.get("Document", {}).get("DocumentBase64", None)
             if base64_file:
-                delinquent_report = base64.b64decode(base64_file)
-                with open(module.params["dest"], "wb") as delinquent_report_file:
-                    delinquent_report_file.write(delinquent_report)
+                ffiec_call_report = base64.b64decode(base64_file)
+                with open(module.params["dest"], "wb") as ffiec_call_report_file:
+                    ffiec_call_report_file.write(ffiec_call_report)
                 result["changed"] = True
                 result["failed"] = False
                 result["msg"] = f"Wrote file at {module.params['dest']}"
