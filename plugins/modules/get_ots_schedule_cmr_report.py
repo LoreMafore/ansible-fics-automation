@@ -228,9 +228,23 @@ def run_module():
                 )
             base64_file = trial_resp.get("Document", {}).get("DocumentBase64", None)
             if base64_file:
-                delinquent_report = base64.b64decode(base64_file)
-                with open(module.params["dest"], "wb") as delinquent_report_file:
-                    delinquent_report_file.write(delinquent_report)
+                ots_schedule_cmr_report = base64.b64decode(base64_file)
+
+                if ots_schedule_cmr_report[:4] == b'%PDF':
+                    file_type = 'PDF'
+                elif ots_schedule_cmr_report[:2] == b'PK':  # ZIP/Excel
+                    file_type = 'Excel/ZIP'
+                elif b',' in ots_schedule_cmr_report[:200] or ots_schedule_cmr_report[:3] == b'\xef\xbb\xbf':
+                    file_type = 'CSV/Text'
+                else:
+                    file_type = 'Unknown'
+                
+                # Log it
+                module.warn(f"Detected file type: {file_type}")
+                module.warn(f"First 50 bytes: {ots_schedule_cmr_report[:50]}")
+                
+                with open(module.params["dest"], "wb") as ots_schedule_cmr_report_file:
+                    ots_schedule_cmr_report_file.write(ots_schedule_cmr_report)
                 result["changed"] = True
                 result["failed"] = False
                 result["msg"] = f"Wrote file at {module.params['dest']}"
