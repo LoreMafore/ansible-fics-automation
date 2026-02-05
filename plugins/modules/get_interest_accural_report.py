@@ -276,7 +276,13 @@ def run_module():
                     changed=False,
                     failed=True,
                 )
-            base64_file = trial_resp.get("DocumentCollection", {}).get("DocumentBase64", None)
+
+            doc_collection = trial_resp.get("DocumentCollection", [])
+            if doc_collection and len(doc_collection) > 0:
+                base64_file = doc_collection[0].get("DocumentBase64", None)
+            else:
+                base64_file = None
+
             if base64_file:
                 interest_accrual_report = base64.b64decode(base64_file)
                 with open(module.params["dest"], "wb") as interest_accrual_report_file:
