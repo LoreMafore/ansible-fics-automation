@@ -150,7 +150,7 @@ def get_ffiec_call_report(
     api_log_directory: str,
 ) -> dict:
     params: dict = {
-        "Message":{
+        "Request":{
             "SystemDate": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
             "Token": api_token,
         }
