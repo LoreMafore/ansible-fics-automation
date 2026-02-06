@@ -166,11 +166,22 @@ def convert_pdf_to_csv(pdf_bytes: bytes) -> list:
             all_rows = []
             
             for page in pdf.pages:
-                tables = page.extract_tables()
-                for table in tables:
-                    if table:
-                        all_rows.extend(table)
-            
+                text = page.extract_text()
+                if not text:
+                    continue
+
+                lines = text/split('\n')
+
+                for line in lines:
+                    if not line.strip():
+                        continue
+
+                    row = re.split(r' +', line.strip())
+                    row = [cell.strip() for cell in row if cell.strip()]
+
+                    if row:
+                        all_rows.append(row)
+                        
             return all_rows
             
     except Exception as e:
