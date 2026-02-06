@@ -158,34 +158,34 @@ def call_api(base_url: str, method: str, endpoint: str, parameters: dict):
         )
         return None
 
-
-def convert_pdf_to_csv(pdf_bytes: bytes) -> list:
-    """Extract table rows from PDF"""
-    try:
-        with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
-            all_rows = []
-            
-            for page in pdf.pages:
-                text = page.extract_text()
-                if not text:
-                    continue
-
-                lines = text.split('\n')
-
-                for line in lines:
-                    if not line.strip():
-                        continue
-
-                    row = re.split(r' +', line.strip())
-                    row = [cell.strip() for cell in row if cell.strip()]
-
-                    if row:
-                        all_rows.append(row)
-                        
-            return all_rows
-            
-    except Exception as e:
-        raise Exception(f"PDF conversion error: {str(e)}")
+#
+# def convert_pdf_to_csv(pdf_bytes: bytes) -> list:
+#     """Extract table rows from PDF"""
+#     try:
+#         with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
+#             all_rows = []
+#             
+#             for page in pdf.pages:
+#                 text = page.extract_text()
+#                 if not text:
+#                     continue
+#
+#                 lines = text.split('\n')
+#
+#                 for line in lines:
+#                     if not line.strip():
+#                         continue
+#
+#                     row = re.split(r'  +', line.strip())
+#                     row = [cell.strip() for cell in row if cell.strip()]
+#
+#                     if row:
+#                         all_rows.append(row)
+#                         
+#             return all_rows
+#             
+#     except Exception as e:
+#         raise Exception(f"PDF conversion error: {str(e)}")
 
 
 def get_ots_schedule_cmr_report(
@@ -269,32 +269,53 @@ def run_module():
             base64_file = trial_resp.get("Document", {}).get("DocumentBase64", None)
             if base64_file:
                 ots_schedule_cmr_report = base64.b64decode(base64_file)
-                
-                try:
-                    csv_rows = convert_pdf_to_csv(ots_schedule_cmr_report)
+                with open(module.params["dest"], "wb") as ots_schedule_cmr_report_file:
+                    ots_schedule_cmr_report_file.write(ots_schedule_cmr_report)
+                result["changed"] = True
+                result["failed"] = False
+                result["msg"] = f"Wrote file at {module.params['dest']}"
+                result["api_response"] = trial_resp
+            else:
+                result["failed"] = True
+                result["msg"] = "no report file found in api response!"
+                result["api_response"] = trial_resp
 
-                    if not csv_rows:
-                        module.fail_json(
-                        msg="No tables found in PDF",
-                        changed=False,
-                        failed=True,
-                        )
-
-                    with open(module.params["dest"], "w", newline='', encoding='utf-8') as f:
-                        writer = csv.writer(f)
-                        writer.writerows(csv_rows)
-                        
-                    result["changed"] = True
-                    result["failed"] = False
-                    result["msg"] = f"Wrote CSV file with {len(csv_rows)} rows at {module.params['dest']}"
-                    result["api_response"] = trial_resp
-
-                except Exception as e:
-                    module.fail_json(
-                    msg=f"Failed to convert PDF to CSV: {str(e)}",
-                    changed=False,
-                    failed=True,
-                )
+        else:
+            module.fail_json(
+                msg="API call unsuccessful",
+                changed=False,
+                failed=True,
+                api_response=trial_resp,
+            )
+            # base64_file = trial_resp.get("Document", {}).get("DocumentBase64", None)
+            # if base64_file:
+            #     ots_schedule_cmr_report = base64.b64decode(base64_file)
+            #     
+            #     try:
+            #         csv_rows = convert_pdf_to_csv(ots_schedule_cmr_report)
+            #
+            #         if not csv_rows:
+            #             module.fail_json(
+            #             msg="No tables found in PDF",
+            #             changed=False,
+            #             failed=True,
+            #             )
+            #
+            #         with open(module.params["dest"], "w", newline='', encoding='utf-8') as f:
+            #             writer = csv.writer(f)
+            #             writer.writerows(csv_rows)
+            #             
+            #         result["changed"] = True
+            #         result["failed"] = False
+            #         result["msg"] = f"Wrote CSV file with {len(csv_rows)} rows at {module.params['dest']}"
+            #         result["api_response"] = trial_resp
+            #
+            #     except Exception as e:
+            #         module.fail_json(
+            #         msg=f"Failed to convert PDF to CSV: {str(e)}",
+            #         changed=False,
+            #         failed=True,
+            #     )
 
     except Exception as e:
         module.fail_json(msg=f"failed to create file: {e}", changed=False, failed=True)
