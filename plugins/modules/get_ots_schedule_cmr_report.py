@@ -170,7 +170,7 @@ def convert_pdf_to_csv(pdf_bytes: bytes) -> list:
                 if not text:
                     continue
 
-                lines = text/split('\n')
+                lines = text.split('\n')
 
                 for line in lines:
                     if not line.strip():
