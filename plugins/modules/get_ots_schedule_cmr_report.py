@@ -171,7 +171,7 @@ def convert_pdf_to_csv(pdf_bytes: bytes) -> list:
                     if not line.strip():
                         continue
 
-                    row = re.split(r' +', line.strip())
+                    row = re.split(r'  +', line.strip())
                     row = [cell.strip() for cell in row if cell.strip()]
 
                     if row:
