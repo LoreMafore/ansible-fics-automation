@@ -30,7 +30,7 @@ short_description: Calls the FICS Mortgage Servicer special services API to gene
 version_added: "3.5.0"
 
 description:
-    - Calls the FICS Mortgage Servicer special services API to create the Delinquent Principal Balances file at the specified destination. 
+    - Calls the FICS Mortgage Servicer special services API to create the OTS Schedule CMR file at the specified destination. 
     - Disclaimer: this module has only been tested for our exact use case
 
 author:
@@ -55,15 +55,20 @@ options:
         description: this is the date the application is due
         required: true
         type: str
+    api_log_directory:
+        description: this is the directory that the API logs will be created in
+        required: false
+        type: str
 
 """
 
 EXAMPLES = r"""
 - name: create file to send
-  get_delinquent_principal_balances:
+  get_ots_schedule_cmr_report:
     dest: /mnt/fics_deliq/IT/Backups/fics/ots_schedule_CMRs_reports_2026-02-07
     fics_api_url: http://mortgageservicer.fics/MortageServicerService.svc/REST/
     api_token: ASDFASDFJSDFSHFJJSDGFSJGQWEUI123123SDFSDFJ12312801C15034264BC98B33619F4A547AECBDD412D46A24D2560D5EFDD8DEDFE74325DC2E7B156C60B942
+    api_log_directory: /tmp/api_logs/
 """
 
 RETURN = r"""
