@@ -15,7 +15,7 @@ from datetime import datetime
 import io
 import csv
 import re
-import pymunpdf as fitz
+import fitz
 
 __metaclass__ = type
 
