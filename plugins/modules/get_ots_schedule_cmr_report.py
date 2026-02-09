@@ -12,10 +12,10 @@ import logging
 import os
 import base64
 from datetime import datetime
-import pdfplumber
 import io
 import csv
 import re
+import fitz
 
 __metaclass__ = type
 
@@ -179,10 +179,49 @@ def get_ots_schedule_cmr_report(
         parameters=params,
     )
 
+def pdf_to_csv(pdf_path: str, csv_path: str):
+    
+    doc = fitz.open(pdf_path)
+    all_rows = []
+
+    for page_num in range(len(doc)):
+        page = doc[page_num]
+
+        tables = page.find_tables()
+        if tables:
+            for table in tables:
+                table_data = table.extract()
+                for row in table_data:
+                    cleaned_row = []
+                    for cell in row:
+                        if cell is None:
+                            cleaned_row.append('')
+                        else:
+                            cleaned_row.append(str(cell).strip())
+
+                    if any(cell for cell in cleaned_row):
+                        all_rows.append(cleaned_row)
+
+        else:
+            text = page.get_text()
+            lines = text.strip().split('\n')
+
+            for line in lines: 
+                if line.strip():
+                    cells = re.split(r'\s{2,}', line.strip())
+                    all_rows.append(cells)
+                    
+    doc.close()
+
+    with open(csv_path, 'w', newline='', encoding='utf-8') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerows(all_rows)
+
 
 def run_module():
     module_args = dict(
-        dest=dict(type="str", required=True, no_log=False),
+        pdf_dest=dict(type="str", required=True, no_log=False),
+        csv_dest=dict(type="str", required=True, no_log=False),
         fics_api_url=dict(type="str", required=True, no_log=False),
         api_token=dict(type="str", required=True, no_log=True),
         api_log_directory=dict(type="str", required=False, no_log=False),
@@ -205,7 +244,8 @@ def run_module():
     api_url: str = module.params["fics_api_url"]
     api_token: str = module.params["api_token"]
     api_log_directory: str = module.params["api_log_directory"]
-    dest: str = module.params["dest"]
+    pdf_dest: str = module.params["pdf_dest"]
+    csv_dest: str = module.params["csv_dest"]
 
     # if the user is working with this module in only check mode we do not
     # want to make any changes to the environment, just return the current
@@ -229,7 +269,7 @@ def run_module():
     try:
         if trial_resp.get("ApiCallSuccessful", None):
             try:
-                os.makedirs(name=str(os.path.dirname(dest)), exist_ok=True)
+                os.makedirs(name=str(os.path.dirname(pdf_dest)), exist_ok=True)
             except Exception as e:
                 module.fail_json(
                     msg=f"failed to create parent directories: {e}",
@@ -240,12 +280,23 @@ def run_module():
             base64_file = trial_resp.get("Document", {}).get("DocumentBase64", None)
             if base64_file:
                 ots_schedule_cmr_report = base64.b64decode(base64_file)
-                with open(module.params["dest"], "wb") as ots_schedule_cmr_report_file:
+
+                with open(module.params["pdf_dest"], "wb") as ots_schedule_cmr_report_file:
                     ots_schedule_cmr_report_file.write(ots_schedule_cmr_report)
-                result["changed"] = True
-                result["failed"] = False
-                result["msg"] = f"Wrote file at {module.params['dest']}"
-                result["api_response"] = trial_resp
+
+                try:
+                    pdf_to_csv(pdf_dest, csv_dest)
+                    result["changed"] = True
+                    result["failed"] = False
+                    result["msg"] = f"Wrote PDF at {module.params['pdf_dest']} and CSV at {module.params['csv_dest']}"
+                    result["api_response"] = trial_resp
+
+                except Exception as e:
+                    result["changed"] = True
+                    result["failed"] = False
+                    result["msg"] = f"Wrote PDF at {module.params['pdf_dest']} but failed to write CSV"
+                    result["api_response"] = trial_resp
+
             else:
                 result["failed"] = True
                 result["msg"] = "no report file found in api response!"
