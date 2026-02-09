@@ -187,7 +187,7 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
     for page_num in range(len(doc)):
         page = doc[page_num]
 
-        tables = page.find_tables()
+        tables = page.find_tables(strategy="lines_strict")
         if tables:
             for table in tables:
                 table_data = table.extract()
