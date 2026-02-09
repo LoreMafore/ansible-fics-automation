@@ -212,7 +212,7 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
             ]):
                 i += 1
                 continue
-            
+
             # Check if we're at the start of the header
             if line == 'Loan #' and not header_added:
                 # Collect all header parts until we hit a loan number or page marker
@@ -221,6 +221,12 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
                 
                 while j < len(lines):
                     current = lines[j]
+                    if any(group in current for group in [
+                        'Loan', 'Due', 'Int', 'Frequency', 'Rem', 
+                        'Balloon', 'Percent', 'Principal', 'Box'
+                    ]):
+                        j += 1
+                        current = current + lines[j]
                     
                     # Stop when we hit a data row (loan number after enough header fields)
                     if re.match(r'^\d{4,}$', current) and len(header) > 10:
