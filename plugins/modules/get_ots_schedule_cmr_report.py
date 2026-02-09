@@ -224,10 +224,12 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
                     if any(group in current for group in [
                         'Loan', 'Due', 'Int', 'Frequency', 'Rem', 
                         'Balloon', 'Percent', 'Principal', 'Box'
-                    ]):
+                    ]) and not current == 'Loan Name':
+                        
                         j += 1
-                        current = current + lines[j]
-                    
+                        current = current + " " + lines[j]
+                   
+
                     # Stop when we hit a data row (loan number after enough header fields)
                     if re.match(r'^\d{4,}$', current) and len(header) > 10:
                         break
