@@ -286,7 +286,14 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
                         j += 1
                         continue
                     
-                    row.append(current)
+                    date_pattern = r'^(\d+)\s+(\d{1,2}/\d{1,2}/\d{2,4})$'
+                    match = re.match(date_pattern, current)
+                    if match:
+                        # Split into two separate fields
+                        row.append(match.group(1))  # The number (Rem Term)
+                        row.append(match.group(2))  # The date (Balloon Date)
+                    else:
+                        row.append(current)
                     j += 1
                 
                 # Add the row if it has enough fields (at least 80% of expected)
