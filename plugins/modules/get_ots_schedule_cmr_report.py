@@ -15,7 +15,7 @@ from datetime import datetime
 import io
 import csv
 import re
-import fitz
+import pymunpdf as fitz
 
 __metaclass__ = type
 
@@ -181,53 +181,128 @@ def get_ots_schedule_cmr_report(
 
 def pdf_to_csv(pdf_path: str, csv_path: str):
     """
-    Convert PDF to CSV using text extraction with proper table structure.
-    Extracts loan data from the OTS Schedule CMR Report.
+    Convert PDF to CSV by reconstructing rows from line-by-line text extraction.
+    
+    The PyMuPDF extraction gives each table cell on its own line, so we need to:
+    1. Identify when we hit the header (starts with "Loan #")
+    2. Collect all header fields until we hit data
+    3. For each data row, collect fields starting from the loan number
+    4. Reconstruct proper CSV rows
     """
     doc = fitz.open(pdf_path)
     all_rows = []
-    header_found = False
-
+    header_added = False
+    
     for page_num in range(len(doc)):
         page = doc[page_num]
         text = page.get_text("text")
-        lines = text.strip().split('\n')
-
-        for line in lines:
-            line = line.strip()
-            if not line:
-                continue
+        lines = [line.strip() for line in text.strip().split('\n') if line.strip()]
+        
+        i = 0
+        while i < len(lines):
+            line = lines[i]
             
-            # Look for the header row (contains "Loan #", "Loan Name", etc.)
-            if 'Loan #' in line and 'Loan Name' in line:
-                # Split by multiple spaces to get headers
-                headers = re.split(r'\s{2,}', line)
-                all_rows.append(headers)
-                header_found = True
-                continue
-            
-            # Skip non-data lines (page headers, titles, investor codes, etc.)
+            # Skip header/title lines
             if any(skip in line for skip in [
-                'Page ', 'Capital Credit Union', 'Mortgage Servicer System',
-                'OTS Schedule CMR Report' 
+                'Capital Credit Union', 'Mortgage Servicer System',
+                'OTS Schedule CMR', 'Investor Codes:', 'FIXED-RATE',
+                'LOANS & MORTGAGE', '30-Year Mortgages', 'Mortgage Loans',
+                'WARM', 'WAC', 'FHA/VA', 'Less Than', 'CMR 0', 
+                'February', '15-Year Mortgages', 'Balloon', 'Adjustable'
             ]):
+                i += 1
                 continue
             
-            # Process data rows (should start with a number for Loan #)
-            if header_found and line:
-                # Split by 2+ spaces to preserve column structure
-                cells = re.split(r'\s{2,}', line)
+            # Check if we're at the start of the header
+            if line == 'Loan #' and not header_added:
+                # Collect all header parts until we hit a loan number or page marker
+                header = ['Loan #']
+                j = i + 1
                 
-                # Only add rows that look like loan data (starts with digits)
-                if cells and re.match(r'^\d+', cells[0]):
-                    all_rows.append(cells)
+                while j < len(lines):
+                    current = lines[j]
                     
+                    # Stop when we hit a data row (loan number after enough header fields)
+                    if re.match(r'^\d{4,}$', current) and len(header) > 10:
+                        break
+                    
+                    # Stop at page marker after collecting headers
+                    if current.startswith('Page ') and len(header) > 10:
+                        j += 1
+                        break
+                    
+                    # Skip page markers in the middle of headers
+                    if current.startswith('Page '):
+                        j += 1
+                        continue
+                    
+                    header.append(current)
+                    j += 1
+                    
+                    # Safety: don't collect more than 30 fields
+                    if len(header) > 30:
+                        break
+                
+                all_rows.append(header)
+                header_added = True
+                i = j
+                continue
+            
+            # Check if this is the start of a data row (loan number)
+            # Must be 4+ digits and we must have seen the header
+            if header_added and re.match(r'^\d{4,}$', line):
+                # This is a loan number - start collecting the row
+                row = [line]
+                j = i + 1
+                
+                # Collect fields based on the header length
+                expected_fields = len(all_rows[0]) if all_rows else 23
+                
+                while j < len(lines) and len(row) < expected_fields:
+                    current = lines[j]
+                    
+                    # Stop if we hit the next loan number (with some safety margin)
+                    if re.match(r'^\d{4,}$', current) and len(row) >= expected_fields - 3:
+                        break
+                    
+                    # Skip page markers
+                    if current.startswith('Page '):
+                        j += 1
+                        continue
+                    
+                    # Skip section headers
+                    if any(skip in current for skip in [
+                        'Capital Credit Union', 'Mortgage Servicer System',
+                        'OTS Schedule CMR'
+                    ]):
+                        j += 1
+                        continue
+                    
+                    row.append(current)
+                    j += 1
+                
+                # Add the row if it has enough fields (at least 80% of expected)
+                if len(row) >= (expected_fields * 0.8):
+                    # Pad with empty strings if needed
+                    while len(row) < expected_fields:
+                        row.append('')
+                    # Trim if too long
+                    row = row[:expected_fields]
+                    all_rows.append(row)
+                
+                i = j
+                continue
+            
+            i += 1
+    
     doc.close()
-
+    
     # Write to CSV
     with open(csv_path, 'w', newline='', encoding='utf-8') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerows(all_rows)
+
+
 def run_module():
     module_args = dict(
         pdf_dest=dict(type="str", required=True, no_log=False),
