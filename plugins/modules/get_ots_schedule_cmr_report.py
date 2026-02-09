@@ -181,29 +181,53 @@ def get_ots_schedule_cmr_report(
 
 def pdf_to_csv(pdf_path: str, csv_path: str):
     """
-    Convert PDF to CSV using text extraction.
-    More reliable than table detection for this type of document.
+    Convert PDF to CSV using text extraction with proper table structure.
+    Extracts loan data from the OTS Schedule CMR Report.
     """
     doc = fitz.open(pdf_path)
     all_rows = []
+    header_found = False
 
     for page_num in range(len(doc)):
         page = doc[page_num]
-        text = page.get_text()
+        text = page.get_text("text")
         lines = text.strip().split('\n')
 
-        for line in lines: 
-            if line.strip():
-                # Split by 2 or more spaces to preserve column structure
-                cells = re.split(r'\s{2,}', line.strip())
-                all_rows.append(cells)
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+            
+            # Look for the header row (contains "Loan #", "Loan Name", etc.)
+            if 'Loan #' in line and 'Loan Name' in line:
+                # Split by multiple spaces to get headers
+                headers = re.split(r'\s{2,}', line)
+                all_rows.append(headers)
+                header_found = True
+                continue
+            
+            # Skip non-data lines (page headers, titles, investor codes, etc.)
+            if any(skip in line for skip in [
+                'Page ', 'Capital Credit Union', 'Mortgage Servicer System',
+                'OTS Schedule CMR Report' 
+            ]):
+                continue
+            
+            # Process data rows (should start with a number for Loan #)
+            if header_found and line:
+                # Split by 2+ spaces to preserve column structure
+                cells = re.split(r'\s{2,}', line)
+                
+                # Only add rows that look like loan data (starts with digits)
+                if cells and re.match(r'^\d+', cells[0]):
+                    all_rows.append(cells)
                     
     doc.close()
 
+    # Write to CSV
     with open(csv_path, 'w', newline='', encoding='utf-8') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerows(all_rows)
-
 def run_module():
     module_args = dict(
         pdf_dest=dict(type="str", required=True, no_log=False),
