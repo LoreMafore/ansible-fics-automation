@@ -222,8 +222,8 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
                 while j < len(lines):
                     current = lines[j]
                     if any(group in current for group in [
-                        'Loan', 'Due', 'Int', 'Frequency', 'Rem', 
-                        'Balloon', 'Percent', 'Principal', 'Box'
+                        'Loan', 'Frequency', 'Rem', 'Balloon', 
+                        'Percent', 'Principal', 'Box'
                     ]) and not current == 'Loan Name':
                         
                         j += 1
