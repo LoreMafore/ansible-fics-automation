@@ -179,129 +179,183 @@ def get_ots_schedule_cmr_report(
         parameters=params,
     )
 
+# def pdf_to_csv(pdf_path: str, csv_path: str):
+#     """
+#     Convert PDF to CSV by reconstructing rows from line-by-line text extraction.
+#     
+#     The PyMuPDF extraction gives each table cell on its own line, so we need to:
+#     1. Identify when we hit the header (starts with "Loan #")
+#     2. Collect all header fields until we hit data
+#     3. For each data row, collect fields starting from the loan number
+#     4. Reconstruct proper CSV rows
+#     """
+#     doc = fitz.open(pdf_path)
+#     all_rows = []
+#     header_added = False
+#     
+#     for page_num in range(len(doc)):
+#         page = doc[page_num]
+#         text = page.get_text("text")
+#         lines = [line.strip() for line in text.strip().split('\n') if line.strip()]
+#         
+#         i = 0
+#         while i < len(lines):
+#             line = lines[i]
+#             
+#             # Skip header/title lines
+#             if any(skip in line for skip in [
+#                 'Capital Credit Union', 'Mortgage Servicer System',
+#                 'OTS Schedule CMR', 'Investor Codes:', 'FIXED-RATE',
+#                 'LOANS & MORTGAGE', '30-Year Mortgages', 'Mortgage Loans',
+#                 'WARM', 'WAC', 'FHA/VA', 'Less Than', 'CMR 0', 
+#                 'February', '15-Year Mortgages', 'Balloon', 'Adjustable'
+#             ]):
+#                 i += 1
+#                 continue
+#
+#             # Check if we're at the start of the header
+#             if line == 'Loan #' and not header_added:
+#                 # Collect all header parts until we hit a loan number or page marker
+#                 header = ['Loan #']
+#                 j = i + 1
+#                 
+#                 while j < len(lines):
+#                     current = lines[j]
+#                     if any(group in current for group in [
+#                         'Loan', 'Rem', 'Balloon', 
+#                         'Percent', 'Principal', 'Box'
+#                     ]) and not current == 'Loan Name':
+#                         
+#                         j += 1
+#                         current = current + " " + lines[j]
+#                    
+#
+#                     # Stop when we hit a data row (loan number after enough header fields)
+#                     if re.match(r'^\d{4,}$', current) and len(header) > 10:
+#                         break
+#                     
+#                     # Stop at page marker after collecting headers
+#                     if current.startswith('Page ') and len(header) > 10:
+#                         j += 1
+#                         break
+#                     
+#                     # Skip page markers in the middle of headers
+#                     if current.startswith('Page '):
+#                         j += 1
+#                         continue
+#                     
+#                     header.append(current)
+#                     j += 1
+#                     
+#                     # Safety: don't collect more than 30 fields
+#                     if len(header) > 30:
+#                         break
+#                 
+#                 all_rows.append(header)
+#                 header_added = True
+#                 i = j
+#                 continue
+#             
+#             # Check if this is the start of a data row (loan number)
+#             # Must be 4+ digits and we must have seen the header
+#             if header_added and re.match(r'^\d{4,}$', line):
+#                 # This is a loan number - start collecting the row
+#                 row = [line]
+#                 j = i + 1
+#                 
+#                 # Collect fields based on the header length
+#                 expected_fields = len(all_rows[0]) if all_rows else 23
+#                 
+#                 while j < len(lines) and len(row) < expected_fields:
+#                     current = lines[j]
+#                     
+#                     # Stop if we hit the next loan number (with some safety margin)
+#                     if re.match(r'^\d{4,}$', current) and len(row) >= expected_fields - 3:
+#                         break
+#                     
+#                     # Skip page markers
+#                     if current.startswith('Page '):
+#                         j += 1
+#                         continue
+#                     
+#                     # Skip section headers
+#                     if any(skip in current for skip in [
+#                         'Capital Credit Union', 'Mortgage Servicer System',
+#                         'OTS Schedule CMR'
+#                     ]):
+#                         j += 1
+#                         continue
+#                     
+#                     row.append(current)
+#                     j += 1
+#                 
+#                 # Add the row if it has enough fields (at least 80% of expected)
+#                 if len(row) >= (expected_fields * 0.8):
+#                     # Pad with empty strings if needed
+#                     while len(row) < expected_fields:
+#                         row.append('')
+#                     # Trim if too long
+#                     row = row[:expected_fields]
+#                     all_rows.append(row)
+#                 
+#                 i = j
+#                 continue
+#             
+#             i += 1
+#     
+#     doc.close()
+#     
+#     # Write to CSV
+#     with open(csv_path, 'w', newline='', encoding='utf-8') as csvfile:
+#         writer = csv.writer(csvfile)
+#         writer.writerows(all_rows)
+
+
 def pdf_to_csv(pdf_path: str, csv_path: str):
     """
-    Convert PDF to CSV by reconstructing rows from line-by-line text extraction.
-    
-    The PyMuPDF extraction gives each table cell on its own line, so we need to:
-    1. Identify when we hit the header (starts with "Loan #")
-    2. Collect all header fields until we hit data
-    3. For each data row, collect fields starting from the loan number
-    4. Reconstruct proper CSV rows
+    Convert PDF to CSV using PyMuPDF's table detection or position-based extraction.
+    This properly handles empty cells that would otherwise misalign columns.
     """
     doc = fitz.open(pdf_path)
     all_rows = []
-    header_added = False
+    header_written = False
     
     for page_num in range(len(doc)):
         page = doc[page_num]
-        text = page.get_text("text")
-        lines = [line.strip() for line in text.strip().split('\n') if line.strip()]
         
-        i = 0
-        while i < len(lines):
-            line = lines[i]
+        # Try using table detection first (handles empty cells automatically)
+        try:
+            tabs = page.find_tables()
             
-            # Skip header/title lines
-            if any(skip in line for skip in [
-                'Capital Credit Union', 'Mortgage Servicer System',
-                'OTS Schedule CMR', 'Investor Codes:', 'FIXED-RATE',
-                'LOANS & MORTGAGE', '30-Year Mortgages', 'Mortgage Loans',
-                'WARM', 'WAC', 'FHA/VA', 'Less Than', 'CMR 0', 
-                'February', '15-Year Mortgages', 'Balloon', 'Adjustable'
-            ]):
-                i += 1
-                continue
-
-            # Check if we're at the start of the header
-            if line == 'Loan #' and not header_added:
-                # Collect all header parts until we hit a loan number or page marker
-                header = ['Loan #']
-                j = i + 1
+            for table in tabs:
+                # Extract table data - this preserves empty cells!
+                table_data = table.extract()
                 
-                while j < len(lines):
-                    current = lines[j]
-                    if any(group in current for group in [
-                        'Loan', 'Frequency', 'Rem', 'Balloon', 
-                        'Percent', 'Principal', 'Box'
-                    ]) and not current == 'Loan Name':
-                        
-                        j += 1
-                        current = current + " " + lines[j]
-                   
-
-                    # Stop when we hit a data row (loan number after enough header fields)
-                    if re.match(r'^\d{4,}$', current) and len(header) > 10:
-                        break
+                for row in table_data:
+                    # Clean up the row
+                    cleaned_row = [str(cell).strip() if cell else '' for cell in row]
                     
-                    # Stop at page marker after collecting headers
-                    if current.startswith('Page ') and len(header) > 10:
-                        j += 1
-                        break
-                    
-                    # Skip page markers in the middle of headers
-                    if current.startswith('Page '):
-                        j += 1
+                    # Skip completely empty rows
+                    if not any(cleaned_row):
                         continue
                     
-                    header.append(current)
-                    j += 1
-                    
-                    # Safety: don't collect more than 30 fields
-                    if len(header) > 30:
-                        break
-                
-                all_rows.append(header)
-                header_added = True
-                i = j
-                continue
-            
-            # Check if this is the start of a data row (loan number)
-            # Must be 4+ digits and we must have seen the header
-            if header_added and re.match(r'^\d{4,}$', line):
-                # This is a loan number - start collecting the row
-                row = [line]
-                j = i + 1
-                
-                # Collect fields based on the header length
-                expected_fields = len(all_rows[0]) if all_rows else 23
-                
-                while j < len(lines) and len(row) < expected_fields:
-                    current = lines[j]
-                    
-                    # Stop if we hit the next loan number (with some safety margin)
-                    if re.match(r'^\d{4,}$', current) and len(row) >= expected_fields - 3:
-                        break
-                    
-                    # Skip page markers
-                    if current.startswith('Page '):
-                        j += 1
+                    # Check if this is a header row
+                    if 'Loan #' in cleaned_row or 'Loan Name' in cleaned_row:
+                        if not header_written:
+                            all_rows.append(cleaned_row)
+                            header_written = True
                         continue
                     
-                    # Skip section headers
-                    if any(skip in current for skip in [
-                        'Capital Credit Union', 'Mortgage Servicer System',
-                        'OTS Schedule CMR'
-                    ]):
-                        j += 1
-                        continue
-                    
-                    row.append(current)
-                    j += 1
-                
-                # Add the row if it has enough fields (at least 80% of expected)
-                if len(row) >= (expected_fields * 0.8):
-                    # Pad with empty strings if needed
-                    while len(row) < expected_fields:
-                        row.append('')
-                    # Trim if too long
-                    row = row[:expected_fields]
-                    all_rows.append(row)
-                
-                i = j
-                continue
-            
-            i += 1
+                    # Add data rows (should start with a loan number)
+                    if cleaned_row[0] and re.match(r'^\d{4,}', cleaned_row[0]):
+                        all_rows.append(cleaned_row)
+        
+        except AttributeError:
+            # find_tables() not available - fall back to position-based extraction
+            page_rows = extract_table_by_position(page, header_written)
+            all_rows.extend(page_rows)
+            if page_rows:
+                header_written = True
     
     doc.close()
     
@@ -309,6 +363,86 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
     with open(csv_path, 'w', newline='', encoding='utf-8') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerows(all_rows)
+
+
+def extract_table_by_position(page, skip_header=False):
+    """
+    Fallback: Extract table using position-based grouping.
+    This preserves empty cells by detecting column positions from the header.
+    """
+    blocks = page.get_text("dict")["blocks"]
+    
+    # Group text by Y-position (rows)
+    rows_dict = {}
+    
+    for block in blocks:
+        if "lines" in block:
+            for line in block["lines"]:
+                for span in line["spans"]:
+                    text = span["text"].strip()
+                    if not text:
+                        continue
+                    
+                    # Round Y position to group into rows (tolerance: 2 pixels)
+                    y_pos = round(span["bbox"][1] / 2) * 2
+                    x_pos = round(span["bbox"][0])
+                    
+                    if y_pos not in rows_dict:
+                        rows_dict[y_pos] = {}
+                    
+                    # Store text at this X,Y position
+                    rows_dict[y_pos][x_pos] = text
+    
+    # Detect column X positions from header row
+    column_positions = None
+    result_rows = []
+    
+    for y_pos in sorted(rows_dict.keys()):
+        row_data = rows_dict[y_pos]
+        
+        # Skip rows that are obviously not data (titles, etc.)
+        row_text = ' '.join(row_data.values())
+        if any(skip in row_text for skip in [
+            'Capital Credit Union', 'Mortgage Servicer System',
+            'OTS Schedule CMR', 'Investor Codes', 'FIXED-RATE',
+            'LOANS & MORTGAGE'
+        ]):
+            continue
+        
+        # Check if this is the header row
+        if 'Loan' in row_text and '#' in row_text and column_positions is None:
+            if skip_header:
+                continue
+            # Extract column X positions from header
+            column_positions = sorted(row_data.keys())
+            # Add header row
+            header = [row_data.get(x, '') for x in column_positions]
+            result_rows.append(header)
+            continue
+        
+        if column_positions is None:
+            continue  # Haven't found header yet
+        
+        # Check if this is a data row (starts with loan number)
+        first_values = [row_data.get(x, '') for x in sorted(row_data.keys())[:3]]
+        first_value = first_values[0] if first_values else ''
+        if not re.match(r'^\d{4,}', str(first_value)):
+            continue  # Not a data row
+        
+        # Extract data for each column position (preserves empty cells)
+        row = []
+        for col_x in column_positions:
+            # Look for data near this X position (tolerance: 15 pixels)
+            found_value = ''
+            for data_x, value in row_data.items():
+                if abs(data_x - col_x) < 15:
+                    found_value = value
+                    break
+            row.append(found_value)
+        
+        result_rows.append(row)
+    
+    return result_rows
 
 
 def run_module():
