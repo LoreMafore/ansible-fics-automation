@@ -180,43 +180,29 @@ def get_ots_schedule_cmr_report(
     )
 
 def pdf_to_csv(pdf_path: str, csv_path: str):
-    
+    """
+    Convert PDF to CSV using text extraction.
+    More reliable than table detection for this type of document.
+    """
     doc = fitz.open(pdf_path)
     all_rows = []
 
     for page_num in range(len(doc)):
         page = doc[page_num]
+        text = page.get_text()
+        lines = text.strip().split('\n')
 
-        tables = page.find_tables(strategy="lines_strict")
-        if tables:
-            for table in tables:
-                table_data = table.extract()
-                for row in table_data:
-                    cleaned_row = []
-                    for cell in row:
-                        if cell is None:
-                            cleaned_row.append('')
-                        else:
-                            cleaned_row.append(str(cell).strip())
-
-                    if any(cell for cell in cleaned_row):
-                        all_rows.append(cleaned_row)
-
-        else:
-            text = page.get_text()
-            lines = text.strip().split('\n')
-
-            for line in lines: 
-                if line.strip():
-                    cells = re.split(r'\s{2,}', line.strip())
-                    all_rows.append(cells)
+        for line in lines: 
+            if line.strip():
+                # Split by 2 or more spaces to preserve column structure
+                cells = re.split(r'\s{2,}', line.strip())
+                all_rows.append(cells)
                     
     doc.close()
 
     with open(csv_path, 'w', newline='', encoding='utf-8') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerows(all_rows)
-
 
 def run_module():
     module_args = dict(
