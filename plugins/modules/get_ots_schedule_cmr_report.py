@@ -286,7 +286,7 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
                         j += 1
                         continue
                     
-                    name_with_bk = re.match(r'^(.+),\s*(\d{2})$', current)
+                    name_with_bk = re.match(r'^(.+)\s*(\d{2})$', current)
                     if name_with_bk and len(row) == 1:  # Only check for 2nd field (Loan Name)
                         # Split into loan name and Bk field
                         row.append(name_with_bk.group(1))  # Loan Name without the trailing digits
