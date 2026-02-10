@@ -205,6 +205,11 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
         while i < len(lines):
             line = lines[i]
             
+            if 'Investor Codes' in line:
+                all_rows.append([line])
+                i += 1
+                continue
+
             # Skip header/title lines
             if any(skip in line for skip in [
                 'Capital Credit Union', 'Mortgage Servicer System',
@@ -216,10 +221,6 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
                 i += 1
                 continue
 
-            if 'Investor Codes' in line:
-                all_rows.append([line])
-                i += 1
-                continue
 
             # if 'FIXED-RATE' in line:
             #     i += 1
