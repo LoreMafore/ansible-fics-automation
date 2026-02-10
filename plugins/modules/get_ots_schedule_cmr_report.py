@@ -200,9 +200,12 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
         page = doc[page_num]
         text = page.get_text("text")
         lines = [line.strip() for line in text.strip().split('\n') if line.strip()]
-        # single_item_list = [
-        #     'Investor'
-        # ]
+        single_item_list = [
+            'Investor Codes', '15-Year Mortgages and MBS',
+            'Balloon Mortgages and MBS', 'Non-Teaser Arms',
+            'ARM Cap & Floor Detail', 'MORTGAGE LOANS SERVICED FOR OTHERS',
+            'ITEMS RELATED TO MORTGAGE LOANS & SECURITIES'
+        ]
         
         i = 0
         while i < len(lines):
@@ -220,7 +223,7 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
                 'OTS Schedule CMR', 
                 'LOANS & MORTGAGE', '30-Year Mortgages', 'Mortgage Loans',
                 'WARM', 'WAC', 'FHA/VA', 'Less Than', 'CMR 0', 
-                'February', '15-Year Mortgages', 'Balloon', 'Adjustable'
+                'February', 'Adjustable'
             ]):
                 i += 1
                 continue
