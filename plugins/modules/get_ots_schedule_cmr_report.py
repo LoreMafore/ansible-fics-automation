@@ -207,10 +207,11 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
             line = lines[i]
             
             if 'Investor Codes' in line:
-                expected_fields = len(all_rows[0]) if all_rows else total_size
-                label_row = [''] * expected_fields
-                label_row[0] = line +" "+ lines[i-1]
-                all_rows.append(label_row)
+                # expected_fields = len(all_rows[0]) if all_rows else total_size
+                expected_fields = total_size
+                investor_code_row = [''] * expected_fields
+                investor_code_row[0] = line +" "+ lines[i-1]
+                all_rows.append(investor_code_row)
                 i += 1
                 continue
 
@@ -226,12 +227,15 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
                 continue
 
 
-            # if 'FIXED-RATE' in line:
-            #     i += 1
-            #     conjoined_line = line + "\n" + lines[i]
-            #     all_rows.append([conjoined_line])
-            #     i += 1
-            #     continue
+            if 'FIXED-RATE' in line:
+                expected_fields = total_size
+                fixed_rate_code_row = [''] * expected_fields
+                i += 1
+                conjoined_line = line + "\n" + lines[i]
+                fixed_rate_code_row[0] = conjoined_line
+                all_rows.append(fixed_rate_code_row)
+                i += 1
+                continue
 
             # Check if we're at the start of the header
             #and not header_added:
