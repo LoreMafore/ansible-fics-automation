@@ -256,6 +256,21 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
                 header_added = True
                 i = j
                 continue
+
+            # Check if this is a group total line
+            # These appear as standalone dollar amounts after a group of loans
+            if header_added and re.match(r'^[\d,]+\.\d{2}$', line) and not re.match(r'^\d{4,}$', line):
+                # Build a total row with "BkInvGrpTotal" as Loan Name
+                expected_fields = len(all_rows[0]) if all_rows else 23
+                total_row = [''] * expected_fields
+                total_row[1] = 'BkInvGrpTotal'  # Loan Name column
+                # Find Principal Balance column index (should be index 15)
+                principal_idx = 15
+                if principal_idx < expected_fields:
+                    total_row[principal_idx] = line
+                all_rows.append(total_row)
+                i += 1
+                continue
             
             # Check if this is the start of a data row (loan number)
             # Must be 4+ digits and we must have seen the header
