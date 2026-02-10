@@ -205,13 +205,21 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
             # Skip header/title lines
             if any(skip in line for skip in [
                 'Capital Credit Union', 'Mortgage Servicer System',
-                'OTS Schedule CMR', 'Investor Codes:', 'FIXED-RATE',
+                'OTS Schedule CMR',  'FIXED-RATE',
                 'LOANS & MORTGAGE', '30-Year Mortgages', 'Mortgage Loans',
                 'WARM', 'WAC', 'FHA/VA', 'Less Than', 'CMR 0', 
                 'February', '15-Year Mortgages', 'Balloon', 'Adjustable'
             ]):
                 i += 1
                 continue
+
+            if line == 'Investor Codes':
+                all_rows.append(line)
+
+            if line == 'FIXED-RATE':
+                i += 1
+                conjoined_line = line + " " + lines[i]
+                all_rows.append(conjoined_line)
 
             # Check if we're at the start of the header
             #and not header_added:
