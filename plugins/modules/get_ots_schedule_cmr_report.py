@@ -303,6 +303,10 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
                     else:
                         row.append(current)
                     j += 1
+
+                # Validate Balloon Date (index 11) - if blank in PDF, it gets skipped
+                if len(row) > 11 and not re.match(r'\d{1,2}/\d{1,2}/\d{2,4}', row[11]):
+                    row.insert(11, '')  # Insert empty Balloon Date
                 
                 # Add the row if it has enough fields (at least 80% of expected)
                 if len(row) >= (expected_fields * 0.8):
