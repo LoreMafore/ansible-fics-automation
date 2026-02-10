@@ -197,6 +197,9 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
         page = doc[page_num]
         text = page.get_text("text")
         lines = [line.strip() for line in text.strip().split('\n') if line.strip()]
+        # single_item_list = [
+        #     'Investor'
+        # ]
         
         i = 0
         while i < len(lines):
@@ -213,21 +216,14 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
                 i += 1
                 continue
 
-            if line == 'Investor Codes':
-                expected_fields = len(all_rows[0]) if all_rows else 23
-                label_row = [''] * expected_fields
-                label_row[1] = 'Investor Codes'
-                all_rows.append(label_row)
-                i += 1
+            if 'Investor Codes' in line:
+                all_rows.append([line])
                 continue
 
-            if line == 'FIXED-RATE':
-                expected_fields = len(all_rows[0]) if all_rows else 23
-                label_row = [''] * expected_fields
+            if 'FIXED-RATE' in line:
                 i += 1
-                label_row[1] = line + " " + lines[i]
-                all_rows.append(label_row)
-                i += 1
+                conjoined_line = line + "\n" + lines[i]
+                all_rows.append([conjoined_line])
                 continue
 
             # Check if we're at the start of the header
