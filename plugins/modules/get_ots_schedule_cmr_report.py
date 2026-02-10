@@ -193,6 +193,8 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
     all_rows = []
     header_added = False
     total_size = 17
+    expected_fields = total_size
+    total_row = [''] * expected_fields
     
     for page_num in range(len(doc)):
         page = doc[page_num]
@@ -207,11 +209,8 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
             line = lines[i]
             
             if 'Investor Codes' in line:
-                # expected_fields = len(all_rows[0]) if all_rows else total_size
-                expected_fields = total_size
-                investor_code_row = [''] * expected_fields
-                investor_code_row[0] = line +" "+ lines[i-1]
-                all_rows.append(investor_code_row)
+                total_row[0] = line +" "+ lines[i-1]
+                all_rows.append(total_row)
                 i += 1
                 continue
 
@@ -228,12 +227,10 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
 
 
             if 'FIXED-RATE' in line:
-                expected_fields = total_size
-                fixed_rate_code_row = [''] * expected_fields
                 i += 1
                 conjoined_line = line + "\n" + lines[i]
-                fixed_rate_code_row[0] = conjoined_line
-                all_rows.append(fixed_rate_code_row)
+                total_row[0] = conjoined_line
+                all_rows.append(total_row)
                 i += 1
                 continue
 
@@ -285,8 +282,6 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
             # These appear as standalone dollar amounts after a group of loans
             if header_added and re.match(r'^[\d,]+\.\d{2}$', line) and not re.match(r'^\d{4,}$', line):
                 # Build a total row with "BkInvGrpTotal" as Loan Name
-                expected_fields = len(all_rows[0]) if all_rows else total_size
-                total_row = [''] * expected_fields
                 total_row[1] = 'BkInvGrpTotal'  # Loan Name column
                 # Find Principal Balance column index (should be index 15)
                 principal_idx = 15
@@ -304,8 +299,6 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
                 j = i + 1
                 
                 # Collect fields based on the header length
-                expected_fields = len(all_rows[0]) if all_rows else total_size
-                
                 while j < len(lines) and len(row) < expected_fields:
                     current = lines[j]
                     
