@@ -206,11 +206,11 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
             line = lines[i]
             
             if 'Investor Codes' in line:
-                all_rows.append([line])
+                all_rows.append(['igglyBuff', line])
                 i += 1
                 continue
 
-            # Skip header/title lines
+           # Skip header/title lines
             if any(skip in line for skip in [
                 'Capital Credit Union', 'Mortgage Servicer System',
                 'OTS Schedule CMR', 
