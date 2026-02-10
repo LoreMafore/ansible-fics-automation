@@ -206,7 +206,11 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
             line = lines[i]
             
             if 'Investor Codes' in line:
-                all_rows.append(['igglyBuff', line])
+                expected_fields = len(all_rows[0]) if all_rows else 23
+                label_row = [''] * expected_fields
+                label_row[1] = 'igglyBuff'
+                label_row[2] = line
+                all_rows.append(label_row)
                 i += 1
                 continue
 
