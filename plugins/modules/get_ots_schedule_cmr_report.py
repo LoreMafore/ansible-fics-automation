@@ -208,8 +208,24 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
             if 'Investor Codes' in line:
                 expected_fields = len(all_rows[0]) if all_rows else 23
                 label_row = [''] * expected_fields
-                label_row[1] = 'igglyBuff'
-                label_row[2] = line
+                header = [line]
+                j = i + 1
+                
+                while j < len(lines):
+                    current = lines[j]
+                    # Stop when we hit a data row (loan number after enough header fields)
+                    if re.match(r'^\d{4,}$', current) and len(header) > 10:
+                        break
+                    
+                    header.append(current)
+                    j += 1
+                    
+                    if len(header) > 23:
+                        break
+                
+                i = j
+
+                label_row[0] = header
                 all_rows.append(label_row)
                 i += 1
                 continue
