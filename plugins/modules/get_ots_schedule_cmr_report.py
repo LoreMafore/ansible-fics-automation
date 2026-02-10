@@ -214,7 +214,8 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
                 continue
 
             # Check if we're at the start of the header
-            if line == 'Loan #' and not header_added:
+            #and not header_added:
+            if line == 'Loan #':
                 # Collect all header parts until we hit a loan number or page marker
                 header = ['Loan #']
                 j = i + 1
