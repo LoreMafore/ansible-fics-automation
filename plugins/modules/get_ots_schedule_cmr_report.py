@@ -192,6 +192,7 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
     doc = fitz.open(pdf_path)
     all_rows = []
     header_added = False
+    total_size = 17
     
     for page_num in range(len(doc)):
         page = doc[page_num]
@@ -206,26 +207,9 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
             line = lines[i]
             
             if 'Investor Codes' in line:
-                expected_fields = len(all_rows[0]) if all_rows else 17
+                expected_fields = len(all_rows[0]) if all_rows else total_size
                 label_row = [''] * expected_fields
-                header = [line]
-                j = i + 1
-                
-                while j < len(lines):
-                    current = lines[j]
-                    # Stop when we hit a data row (loan number after enough header fields)
-                    if re.match(r'^\d{4,}$', current) and len(header) > 10:
-                        break
-                    
-                    header.append(current)
-                    j += 1
-                    
-                    if len(header) > 17:
-                        break
-                
-                i = j
-
-                label_row[0] = header
+                label_row[0] = line +" "+ lines[i-1]
                 all_rows.append(label_row)
                 i += 1
                 continue
@@ -297,7 +281,7 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
             # These appear as standalone dollar amounts after a group of loans
             if header_added and re.match(r'^[\d,]+\.\d{2}$', line) and not re.match(r'^\d{4,}$', line):
                 # Build a total row with "BkInvGrpTotal" as Loan Name
-                expected_fields = len(all_rows[0]) if all_rows else 17
+                expected_fields = len(all_rows[0]) if all_rows else total_size
                 total_row = [''] * expected_fields
                 total_row[1] = 'BkInvGrpTotal'  # Loan Name column
                 # Find Principal Balance column index (should be index 15)
@@ -316,7 +300,7 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
                 j = i + 1
                 
                 # Collect fields based on the header length
-                expected_fields = len(all_rows[0]) if all_rows else 17
+                expected_fields = len(all_rows[0]) if all_rows else total_size
                 
                 while j < len(lines) and len(row) < expected_fields:
                     current = lines[j]
