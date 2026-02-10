@@ -216,11 +216,11 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
                 i += 1
                 continue
 
-            if 'Investor Codes' in line:
+            if line == 'Investor Codes:':
                 all_rows.append([line])
                 continue
 
-            if 'FIXED-RATE' in line:
+            if line == 'FIXED-RATE,':
                 i += 1
                 conjoined_line = line + "\n" + lines[i]
                 all_rows.append([conjoined_line])
