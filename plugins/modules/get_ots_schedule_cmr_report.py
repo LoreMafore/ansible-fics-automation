@@ -206,7 +206,7 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
             line = lines[i]
             
             if 'Investor Codes' in line:
-                expected_fields = len(all_rows[0]) if all_rows else 23
+                expected_fields = len(all_rows[0]) if all_rows else 17
                 label_row = [''] * expected_fields
                 header = [line]
                 j = i + 1
@@ -220,7 +220,7 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
                     header.append(current)
                     j += 1
                     
-                    if len(header) > 23:
+                    if len(header) > 17:
                         break
                 
                 i = j
@@ -297,7 +297,7 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
             # These appear as standalone dollar amounts after a group of loans
             if header_added and re.match(r'^[\d,]+\.\d{2}$', line) and not re.match(r'^\d{4,}$', line):
                 # Build a total row with "BkInvGrpTotal" as Loan Name
-                expected_fields = len(all_rows[0]) if all_rows else 23
+                expected_fields = len(all_rows[0]) if all_rows else 17
                 total_row = [''] * expected_fields
                 total_row[1] = 'BkInvGrpTotal'  # Loan Name column
                 # Find Principal Balance column index (should be index 15)
@@ -316,7 +316,7 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
                 j = i + 1
                 
                 # Collect fields based on the header length
-                expected_fields = len(all_rows[0]) if all_rows else 23
+                expected_fields = len(all_rows[0]) if all_rows else 17
                 
                 while j < len(lines) and len(row) < expected_fields:
                     current = lines[j]
