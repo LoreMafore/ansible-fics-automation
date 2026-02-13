@@ -249,6 +249,27 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
     header_added = False
     fixed_rate = False
     expected_fields = TOTALSIZE 
+
+    for page_num in range(len(doc)):
+        page = doc[page_num]
+        text = page.get_text("text")
+        lines = [line.strip() for line in text.strip().split('\n') if line.strip()]
+
+        i = 0
+        while i < len(lines):
+            if 'CMR' in lines[i]:
+                if lines[i].startswith('CMR'):
+                    line_parts = lines[i].split(':')
+                    parts = line_parts[0].split()
+                elif lines[i].startswith('MEMO') or lines[i].startswith('OTS'):
+                    i += 1
+                    continue
+                else:
+                    parts = lines[i].split()
+                cmr_dict[parts[1]] = parts[0]
+            i += 1
+
+    sorted_cmr_list = dict(sorted(cmr_dict.items()))
     
     for page_num in range(len(doc)):
         page = doc[page_num]
@@ -276,26 +297,6 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
             'Fixed-Rate', 'Conventional', 'Adjustable-Rate',
             'Total Balances of Mortage', 'Nonperforming'
         ] 
-
-        i = 0
-
-        while i < len(lines):
-            if 'CMR' in lines[i]:
-                if lines[i].startswith('CMR'):
-                    line_parts = lines[i].split(':')
-                    parts = line_parts[0].split()
-
-                elif lines[i].startswith('MEMO') or lines[i].startswith('OTS'): 
-                    i += 1
-                    continue
-
-                else:
-                    parts = lines[i].split()
-
-                cmr_dict[parts[1]] = parts[0]
-
-            i += 1
-        sorted_cmr_list = dict(sorted(cmr_dict.items()))
 
         i = 0
         while i < len(lines):
