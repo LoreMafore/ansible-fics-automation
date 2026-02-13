@@ -1,0 +1,10 @@
+{
+  "ANSIBLE_MODULE_ARGS": {
+    "pdf_dest": "/home/vir/temp/ansible-collection-fics/plugins/modules/pdf.pdf",
+    "csv_dest": "/home/vir/temp/ansible-collection-fics/plugins/modules/csv.csv",
+    "fics_api_url": "http://mortgageservicer.fics/MortgageServicerService.svc/REST/",
+    "api_token": "",
+    "api_log_directory": "/tmp/"
+  }
+}
+

@@ -4,7 +4,7 @@
 #                      David Villafaña <david.villafana@capcu.org>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 from __future__ import absolute_import, division, print_function
-from sqlite3 import Row
+from dataclasses import dataclass
 from ansible.module_utils.basic import AnsibleModule
 from typing import Callable, Any
 import requests
@@ -87,6 +87,28 @@ api_response:
     type: str
     returned: always
 """
+
+@dataclass(frozen=True)
+class bbox:
+    x0: float
+    y0: float
+    x: float
+    y: float
+    word: str
+    block: int
+    line: int
+    word_no: int
+
+
+@dataclass
+class PdfLine:
+    linenum: int
+    list[bbox]
+
+
+@dataclass
+class page_representation:
+    lines: list[PdfLine]
 
 TOTALSIZE = 17
 
@@ -252,7 +274,11 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
 
     for page_num in range(len(doc)):
         page = doc[page_num]
-        text = page.get_text("text")
+        text = page.get_text("words")
+        bboxes: list[bbox] = [bbox(*x) for x in text]
+        lines: list[PdfLine] = sort_bboxes_into_lines(bboxes)
+
+        print(bboxes)
         lines = [line.strip() for line in text.strip().split('\n') if line.strip()]
 
         i = 0
@@ -589,7 +615,6 @@ def run_module():
         fics_api_url=dict(type="str", required=True, no_log=False),
         api_token=dict(type="str", required=True, no_log=True),
         api_log_directory=dict(type="str", required=False, no_log=False),
-        api_due_date=dict(type="str", required=True, no_log=False),
     )    
 
     # seed the result dict in the object
