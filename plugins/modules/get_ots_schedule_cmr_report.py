@@ -292,9 +292,6 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
                 else:
                     parts = lines[i].split()
 
-                total_row = [''] * expected_fields
-                total_row[0] = lines[i]
-                all_rows.append(total_row) 
                 cmr_dict[parts[1]] = parts[0]
 
             i += 1
