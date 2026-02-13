@@ -188,10 +188,10 @@ def make_rows(labels, sorted_cmr_list):
         row[0] = label
 
         for x in range(1, 6):
-            # if not sorted_cmr_list:
-            #     row[0] = "sorted_cmr_list is empty"
-            #     rows.append(row)
-            #     return rows  
+            if not sorted_cmr_list:
+                row[0] = "sorted_cmr_list is empty"
+                rows.append(row)
+                return rows  
             key, value = next(iter(sorted_cmr_list.items()))
             row[x] = f"{value} {key}"
             del sorted_cmr_list[key]
@@ -281,9 +281,9 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
 
         while i < len(lines):
             if 'CMR' in lines[i]:
-                # total_row = [''] * expected_fields
-                # total_row[0] = lines[i]
-                # all_rows.append(total_row) 
+                total_row = [''] * expected_fields
+                total_row[0] = lines[i]
+                all_rows.append(total_row) 
                 if(lines[i].startswith('CMR')):
                     line_parts = lines[i].split(':')
                     parts = line_parts[0].split()
@@ -405,6 +405,7 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
                 ]
                 rows = make_rows(labels, sorted_cmr_list)
                 all_rows.extend(rows)
+                i += 1
                 continue
 
             if line.startswith('ARM Cap'):
