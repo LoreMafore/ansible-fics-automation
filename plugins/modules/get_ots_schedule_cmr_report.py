@@ -296,281 +296,281 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
             i += 1
         sorted_cmr_list = dict(sorted(cmr_dict.items()))
 
-        i = 0
-        while i < len(lines):
-            line = lines[i]
-
-            if any(skip in line for skip in [
-                'Capital Credit Union', 'Mortgage Servicer System',
-                'OTS Schedule CMR' 
-                # 'LOANS & MORTGAGE', '30-Year Mortgages', 'Mortgage Loans',
-                # 'WARM', 'WAC', 'FHA/VA', 'Less Than', 'CMR 0', 
-                # 'February', 'Adjustable'
-            ]):
-                i += 1
-                continue
-
-            if i + 1 < len(lines) and lines[i + 1].startswith('FIXED-RATE') and fixed_rate == False:
-                total_row = [''] * expected_fields
-                conjoined_line = lines[i + 1] + "\n" + lines[i + 2]
-                total_row[0] = conjoined_line
-                all_rows.append(total_row)
-                fixed_rate = True
-                continue
-
-            if line.startswith('30-Year Mortgages and MBS:'):
-                row, i = get_row(lines, i, single_item_list + multiple_item_list)
-                all_rows.append(row)
-
-                labels = [ "Mortgage Loans", "WARM", "WAC", "FHA/VA"]
-                rows = make_rows(labels, sorted_cmr_list)
-                all_rows.extend(rows)
-                i += 1
-                continue
-
-            if line.startswith('15-Year') or line.startswith('Balloon Mortgages'):
-                total_row = [''] * expected_fields
-                parts = line.split(':') # ex: 15-Year Mortgages and MBS: CMR 010
-                total_row[0] = parts[0] + ':'
-                all_rows.append(total_row)
-
-                labels = [ "Mortgage Loans", "WAC", "WARM"]
-                rows = make_rows(labels, sorted_cmr_list)
-                all_rows.extend(rows)
-                i += 1
-                continue
-
-            if line.startswith('Total Fixed-Rate,') or line.startswith('Total Adjustable-Rate,'):
-                total_row = [''] * expected_fields
-                key, value = next(iter(sorted_cmr_list.items()))
-                total_row[0] = line
-                total_row[1] = f"{value} {key} ="
-                del sorted_cmr_list[key] 
-                all_rows.append(total_row)
-                i += 1
-                continue
-
-
-            if line.startswith('ADJUSTABLE RATE') or line.startswith('MEMO ITEMS'):
-                total_row = [''] * expected_fields
-                if line.startswith('ADJUSTABLE'):
-                    total_row[0] = line + '\n' + lines[i + 1]
-                    i += 2
-                else:
-                    total_row[0] = line + '\n' + lines[i + 1]
-                    i += 1
-                total_row[1] = 'Current Market'
-                total_row[4] = 'Lagging Market'
-                all_rows.append(total_row)
-                continue
-
-            if line.startswith('Teaser Arms'):
-                row, i = get_row(lines, i, single_item_list + multiple_item_list + all_list)
-                all_rows.append(row)
-
-                labels = ["Balances Currently Subject to Introductory Rates", "WAC"]
-                rows = make_rows(labels, sorted_cmr_list)
-                all_rows.extend(rows)
-                continue
-
-            if line.startswith('Non-Teaser'):
-                total_row = [''] * expected_fields
-                parts = line.split('Balances') # ex: Non-Teaser Arms Balances Currently Subject to Introductory Rates
-                total_row[0] = parts[0]
-                all_rows.append(total_row)
-
-                labels = [ 
-                    "Balances of All Non-Teaser ARMs", "Wtd Avg Margin",
-                    "WAC", "WARM", 'Wtd Avg Time Until Next Payment Reset'
-                ]
-                rows = make_rows(labels, sorted_cmr_list)
-                all_rows.extend(rows)
-                i += 1
-                continue
-
-
-            if line.startswith('ARM Balances'):
-                total_row = [''] * expected_fields
-                total_row[0] = line
-                all_rows.append(total_row)
-
-                labels = [
-                    "Balances W/Coupon Within 200 bp of Lifetime Cap",
-                    "Wtd Avg Distance from Lifetime Cap",
-                    "Balances W/Coupon 201-400 bp from Lifetime Cap",
-                    "Wtd Avg Distance from Lifetime Cap",
-                    "Balances W/Coupon Over 400 bp of Lifetime Cap",
-                    "Wtd Avg Distance from Lifetime Cap",
-                    "Balances Without Lifetime Cap"
-                ]
-                rows = make_rows(labels, sorted_cmr_list)
-                all_rows.extend(rows)
-                i += 1
-                continue
-
-            if line.startswith('ARM Cap'):
-                total_row = [''] * expected_fields
-                parts = line.split('CMR') # ex: ARM Cap & Floor Detail CMR 195
-                total_row[0] = parts[0]
-                all_rows.append(total_row)
-
-                labels = [ 
-                    "Balances Subject to Periodic Rate Caps", 
-                    "Wtd Avg Periodic Rate Cap (in basis Points)",
-                    "Balances Subject to Periodic Rate Floors"
-                ]
-                rows = make_rows(labels, sorted_cmr_list)
-                all_rows.extend(rows)
-                i += 1
-                continue
-
-
-            # if line.startswith('SECOND MORTGAGE'):
-            #     row, i = get_row(lines, i, single_item_list + multiple_item_list + all_list)
-            #     all_rows.append(row)
-            #
-            #     labels = [
-            #         "Balances ",
-            #         "WARM",
-            #         "Rate Index Code",
-            #         "Margin in Col 1; WAC in Col 2",
-            #         "Reset Frequency"
-            #     ]
-            #     rows = make_rows(labels, sorted_cmr_list)
-            #     all_rows.extend(rows)
-            #     continue
-
-            if any(item in line for item in single_item_list):
-                total_row = [''] * expected_fields
-                total_row[0] = line + " " + lines[i-1]
-                all_rows.append(total_row)
-                i += 1
-                continue
-
-            #Check if we're at the start of the header
-            #and not header_added:
-            if line == 'Loan #':
-                # Collect all header parts until we hit a loan number or page marker
-                header = ['Loan #']
-                j = i + 1
-                
-                while j < len(lines):
-                    current = lines[j]
-                    if any(group in current for group in [
-                        'Loan', 'Rem', 'Balloon', 
-                        'Percent', 'Principal', 'Box'
-                    ]) and not current == 'Loan Name':
-                        
-                        j += 1
-                        current = current + " " + lines[j]
-                   
-                    # Stop when we hit a data row (loan number after enough header fields)
-                    if re.match(r'^\d{4,}$', current) and len(header) > 10:
-                        break
-                    
-                    # Stop at page marker after collecting headers
-                    if current.startswith('Page ') and len(header) > 10:
-                        j += 1
-                        break
-                    
-                    # Skip page markers in the middle of headers
-                    if current.startswith('Page '):
-                        j += 1
-                        continue
-
-                    header.append(current)
-                    j += 1
-                    
-                all_rows.append(header)
-                header_added = True
-                i = j
-                continue
-
-            # if not header_added:
-            #     total_row = [''] * expected_fields
-            #     total_row[0] = line
-            #     all_rows.append(total_row)
-            #     i += 1
-            #     continue
-
-
-            # Check if this is a group total line
-            # These appear as standalone dollar amounts after a group of loans
-            if header_added and re.match(r'^[\d,]+\.\d{2}$', line) and not re.match(r'^\d{4,}$', line):
-                # Build a total row with "BkInvGrpTotal" as Loan Name
-                total_row = [''] * expected_fields
-                total_row[1] = 'BkInvGrpTotal'  # Loan Name column
-                # Find Principal Balance column index (should be index 15)
-                principal_idx = 15
-                if principal_idx < expected_fields:
-                    total_row[principal_idx] = line
-                all_rows.append(total_row)
-                i += 1
-                continue
-            
-            # Check if this is the start of a data row (loan number)
-            # Must be 4+ digits and we must have seen the header
-            if header_added and re.match(r'^\d{4,}$', line):
-                # This is a loan number - start collecting the row
-                row = [line]
-                j = i + 1
-                
-                # Collect fields based on the header length
-                while j < len(lines) and len(row) < expected_fields:
-                    current = lines[j]
-                    
-                    # Stop if we hit the next loan number (with some safety margin)
-                    if re.match(r'^\d{4,}$', current) and len(row) >= expected_fields - 3:
-                        break
-                    
-                    # Skip page markers
-                    if current.startswith('Page '):
-                        j += 1
-                        continue
-                    
-                    # Skip section headers
-                    if any(skip in current for skip in [
-                        'Capital Credit Union', 'Mortgage Servicer System',
-                        'OTS Schedule CMR'
-                    ]):
-                        j += 1
-                        continue
-                    
-                    name_with_bk = re.match(r'^(.+)\s*(\d{2})$', current)
-                    if name_with_bk and len(row) == 1:  # Only check for 2nd field (Loan Name)
-                        # Split into loan name and Bk field
-                        row.append(name_with_bk.group(1))  # Loan Name without the trailing digits
-                        row.append(name_with_bk.group(2))  # Bk (2-digit code)
-                        j += 1
-                        continue
-
-                    date_pattern = r'^(\d+)\s+(\d{1,2}/\d{1,2}/\d{2,4})$'
-                    match = re.match(date_pattern, current)
-                    if match:
-                        # Split into two separate fields
-                        row.append(match.group(1))  # The number (Rem Term)
-                        row.append(match.group(2))  # The date (Balloon Date)
-                    else:
-                        row.append(current)
-                    j += 1
-
-                # Validate Balloon Date (index 11) - if blank in PDF, it gets skipped
-                if len(row) > 11 and not re.match(r'\d{1,2}/\d{1,2}/\d{2,4}', row[11]):
-                    row.insert(11, '')  # Insert empty Balloon Date
-                
-                # Add the row if it has enough fields (at least 80% of expected)
-                if len(row) >= (expected_fields * 0.8):
-                    # Pad with empty strings if needed
-                    while len(row) < expected_fields:
-                        row.append('')
-                    # Trim if too long
-                    row = row[:expected_fields]
-                    all_rows.append(row)
-                
-                i = j
-                continue
-
-            i += 1
+        # i = 0
+        # while i < len(lines):
+        #     line = lines[i]
+        #
+        #     if any(skip in line for skip in [
+        #         'Capital Credit Union', 'Mortgage Servicer System',
+        #         'OTS Schedule CMR' 
+        #         # 'LOANS & MORTGAGE', '30-Year Mortgages', 'Mortgage Loans',
+        #         # 'WARM', 'WAC', 'FHA/VA', 'Less Than', 'CMR 0', 
+        #         # 'February', 'Adjustable'
+        #     ]):
+        #         i += 1
+        #         continue
+        #
+        #     if i + 1 < len(lines) and lines[i + 1].startswith('FIXED-RATE') and fixed_rate == False:
+        #         total_row = [''] * expected_fields
+        #         conjoined_line = lines[i + 1] + "\n" + lines[i + 2]
+        #         total_row[0] = conjoined_line
+        #         all_rows.append(total_row)
+        #         fixed_rate = True
+        #         continue
+        #
+        #     if line.startswith('30-Year Mortgages and MBS:'):
+        #         row, i = get_row(lines, i, single_item_list + multiple_item_list)
+        #         all_rows.append(row)
+        #
+        #         labels = [ "Mortgage Loans", "WARM", "WAC", "FHA/VA"]
+        #         rows = make_rows(labels, sorted_cmr_list)
+        #         all_rows.extend(rows)
+        #         i += 1
+        #         continue
+        #
+        #     if line.startswith('15-Year') or line.startswith('Balloon Mortgages'):
+        #         total_row = [''] * expected_fields
+        #         parts = line.split(':') # ex: 15-Year Mortgages and MBS: CMR 010
+        #         total_row[0] = parts[0] + ':'
+        #         all_rows.append(total_row)
+        #
+        #         labels = [ "Mortgage Loans", "WAC", "WARM"]
+        #         rows = make_rows(labels, sorted_cmr_list)
+        #         all_rows.extend(rows)
+        #         i += 1
+        #         continue
+        #
+        #     if line.startswith('Total Fixed-Rate,') or line.startswith('Total Adjustable-Rate,'):
+        #         total_row = [''] * expected_fields
+        #         key, value = next(iter(sorted_cmr_list.items()))
+        #         total_row[0] = line
+        #         total_row[1] = f"{value} {key} ="
+        #         del sorted_cmr_list[key] 
+        #         all_rows.append(total_row)
+        #         i += 1
+        #         continue
+        #
+        #
+        #     if line.startswith('ADJUSTABLE RATE') or line.startswith('MEMO ITEMS'):
+        #         total_row = [''] * expected_fields
+        #         if line.startswith('ADJUSTABLE'):
+        #             total_row[0] = line + '\n' + lines[i + 1]
+        #             i += 2
+        #         else:
+        #             total_row[0] = line + '\n' + lines[i + 1]
+        #             i += 1
+        #         total_row[1] = 'Current Market'
+        #         total_row[4] = 'Lagging Market'
+        #         all_rows.append(total_row)
+        #         continue
+        #
+        #     if line.startswith('Teaser Arms'):
+        #         row, i = get_row(lines, i, single_item_list + multiple_item_list + all_list)
+        #         all_rows.append(row)
+        #
+        #         labels = ["Balances Currently Subject to Introductory Rates", "WAC"]
+        #         rows = make_rows(labels, sorted_cmr_list)
+        #         all_rows.extend(rows)
+        #         continue
+        #
+        #     if line.startswith('Non-Teaser'):
+        #         total_row = [''] * expected_fields
+        #         parts = line.split('Balances') # ex: Non-Teaser Arms Balances Currently Subject to Introductory Rates
+        #         total_row[0] = parts[0]
+        #         all_rows.append(total_row)
+        #
+        #         labels = [ 
+        #             "Balances of All Non-Teaser ARMs", "Wtd Avg Margin",
+        #             "WAC", "WARM", 'Wtd Avg Time Until Next Payment Reset'
+        #         ]
+        #         rows = make_rows(labels, sorted_cmr_list)
+        #         all_rows.extend(rows)
+        #         i += 1
+        #         continue
+        #
+        #
+        #     if line.startswith('ARM Balances'):
+        #         total_row = [''] * expected_fields
+        #         total_row[0] = line
+        #         all_rows.append(total_row)
+        #
+        #         labels = [
+        #             "Balances W/Coupon Within 200 bp of Lifetime Cap",
+        #             "Wtd Avg Distance from Lifetime Cap",
+        #             "Balances W/Coupon 201-400 bp from Lifetime Cap",
+        #             "Wtd Avg Distance from Lifetime Cap",
+        #             "Balances W/Coupon Over 400 bp of Lifetime Cap",
+        #             "Wtd Avg Distance from Lifetime Cap",
+        #             "Balances Without Lifetime Cap"
+        #         ]
+        #         rows = make_rows(labels, sorted_cmr_list)
+        #         all_rows.extend(rows)
+        #         i += 1
+        #         continue
+        #
+        #     if line.startswith('ARM Cap'):
+        #         total_row = [''] * expected_fields
+        #         parts = line.split('CMR') # ex: ARM Cap & Floor Detail CMR 195
+        #         total_row[0] = parts[0]
+        #         all_rows.append(total_row)
+        #
+        #         labels = [ 
+        #             "Balances Subject to Periodic Rate Caps", 
+        #             "Wtd Avg Periodic Rate Cap (in basis Points)",
+        #             "Balances Subject to Periodic Rate Floors"
+        #         ]
+        #         rows = make_rows(labels, sorted_cmr_list)
+        #         all_rows.extend(rows)
+        #         i += 1
+        #         continue
+        #
+        #
+        #     # if line.startswith('SECOND MORTGAGE'):
+        #     #     row, i = get_row(lines, i, single_item_list + multiple_item_list + all_list)
+        #     #     all_rows.append(row)
+        #     #
+        #     #     labels = [
+        #     #         "Balances ",
+        #     #         "WARM",
+        #     #         "Rate Index Code",
+        #     #         "Margin in Col 1; WAC in Col 2",
+        #     #         "Reset Frequency"
+        #     #     ]
+        #     #     rows = make_rows(labels, sorted_cmr_list)
+        #     #     all_rows.extend(rows)
+        #     #     continue
+        #
+        #     if any(item in line for item in single_item_list):
+        #         total_row = [''] * expected_fields
+        #         total_row[0] = line + " " + lines[i-1]
+        #         all_rows.append(total_row)
+        #         i += 1
+        #         continue
+        #
+        #     #Check if we're at the start of the header
+        #     #and not header_added:
+        #     if line == 'Loan #':
+        #         # Collect all header parts until we hit a loan number or page marker
+        #         header = ['Loan #']
+        #         j = i + 1
+        #         
+        #         while j < len(lines):
+        #             current = lines[j]
+        #             if any(group in current for group in [
+        #                 'Loan', 'Rem', 'Balloon', 
+        #                 'Percent', 'Principal', 'Box'
+        #             ]) and not current == 'Loan Name':
+        #                 
+        #                 j += 1
+        #                 current = current + " " + lines[j]
+        #            
+        #             # Stop when we hit a data row (loan number after enough header fields)
+        #             if re.match(r'^\d{4,}$', current) and len(header) > 10:
+        #                 break
+        #             
+        #             # Stop at page marker after collecting headers
+        #             if current.startswith('Page ') and len(header) > 10:
+        #                 j += 1
+        #                 break
+        #             
+        #             # Skip page markers in the middle of headers
+        #             if current.startswith('Page '):
+        #                 j += 1
+        #                 continue
+        #
+        #             header.append(current)
+        #             j += 1
+        #             
+        #         all_rows.append(header)
+        #         header_added = True
+        #         i = j
+        #         continue
+        #
+        #     # if not header_added:
+        #     #     total_row = [''] * expected_fields
+        #     #     total_row[0] = line
+        #     #     all_rows.append(total_row)
+        #     #     i += 1
+        #     #     continue
+        #
+        #
+        #     # Check if this is a group total line
+        #     # These appear as standalone dollar amounts after a group of loans
+        #     if header_added and re.match(r'^[\d,]+\.\d{2}$', line) and not re.match(r'^\d{4,}$', line):
+        #         # Build a total row with "BkInvGrpTotal" as Loan Name
+        #         total_row = [''] * expected_fields
+        #         total_row[1] = 'BkInvGrpTotal'  # Loan Name column
+        #         # Find Principal Balance column index (should be index 15)
+        #         principal_idx = 15
+        #         if principal_idx < expected_fields:
+        #             total_row[principal_idx] = line
+        #         all_rows.append(total_row)
+        #         i += 1
+        #         continue
+        #     
+        #     # Check if this is the start of a data row (loan number)
+        #     # Must be 4+ digits and we must have seen the header
+        #     if header_added and re.match(r'^\d{4,}$', line):
+        #         # This is a loan number - start collecting the row
+        #         row = [line]
+        #         j = i + 1
+        #         
+        #         # Collect fields based on the header length
+        #         while j < len(lines) and len(row) < expected_fields:
+        #             current = lines[j]
+        #             
+        #             # Stop if we hit the next loan number (with some safety margin)
+        #             if re.match(r'^\d{4,}$', current) and len(row) >= expected_fields - 3:
+        #                 break
+        #             
+        #             # Skip page markers
+        #             if current.startswith('Page '):
+        #                 j += 1
+        #                 continue
+        #             
+        #             # Skip section headers
+        #             if any(skip in current for skip in [
+        #                 'Capital Credit Union', 'Mortgage Servicer System',
+        #                 'OTS Schedule CMR'
+        #             ]):
+        #                 j += 1
+        #                 continue
+        #             
+        #             name_with_bk = re.match(r'^(.+)\s*(\d{2})$', current)
+        #             if name_with_bk and len(row) == 1:  # Only check for 2nd field (Loan Name)
+        #                 # Split into loan name and Bk field
+        #                 row.append(name_with_bk.group(1))  # Loan Name without the trailing digits
+        #                 row.append(name_with_bk.group(2))  # Bk (2-digit code)
+        #                 j += 1
+        #                 continue
+        #
+        #             date_pattern = r'^(\d+)\s+(\d{1,2}/\d{1,2}/\d{2,4})$'
+        #             match = re.match(date_pattern, current)
+        #             if match:
+        #                 # Split into two separate fields
+        #                 row.append(match.group(1))  # The number (Rem Term)
+        #                 row.append(match.group(2))  # The date (Balloon Date)
+        #             else:
+        #                 row.append(current)
+        #             j += 1
+        #
+        #         # Validate Balloon Date (index 11) - if blank in PDF, it gets skipped
+        #         if len(row) > 11 and not re.match(r'\d{1,2}/\d{1,2}/\d{2,4}', row[11]):
+        #             row.insert(11, '')  # Insert empty Balloon Date
+        #         
+        #         # Add the row if it has enough fields (at least 80% of expected)
+        #         if len(row) >= (expected_fields * 0.8):
+        #             # Pad with empty strings if needed
+        #             while len(row) < expected_fields:
+        #                 row.append('')
+        #             # Trim if too long
+        #             row = row[:expected_fields]
+        #             all_rows.append(row)
+        #         
+        #         i = j
+        #         continue
+        #
+        #     i += 1
     
     doc.close()
     
