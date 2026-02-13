@@ -284,9 +284,13 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
                 total_row = [''] * expected_fields
                 total_row[0] = lines[i]
                 all_rows.append(total_row) 
-                if(lines[i].startswith('CMR')):
+                if lines[i].startswith('CMR'):
                     line_parts = lines[i].split(':')
                     parts = line_parts[0].split()
+
+                elif lines[i].startswith('MEMO') or lines[i].startswith('OTS') 
+                    i += 1
+                    continue
 
                 else:
                     parts = lines[i].split()
