@@ -288,7 +288,7 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
                     line_parts = lines[i].split(':')
                     parts = line_parts[0].split()
 
-                elif lines[i].startswith('MEMO') or lines[i].startswith('OTS') 
+                elif lines[i].startswith('MEMO') or lines[i].startswith('OTS'): 
                     i += 1
                     continue
 
@@ -301,7 +301,7 @@ def pdf_to_csv(pdf_path: str, csv_path: str):
         sorted_cmr_list = dict(sorted(cmr_dict.items()))
 
         # i = 0
-        # while i < len(lines):
+        # while i  len(lines):
         #     line = lines[i]
         #
         #     if any(skip in line for skip in [
