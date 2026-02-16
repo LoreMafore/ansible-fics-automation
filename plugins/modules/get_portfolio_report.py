@@ -163,7 +163,8 @@ def get_portfolio_report(
         "Message":{
             "IsIncludeGroups": False,
 		    "IsIncludeZeroBalanceLoans": False,
-            "SystemDate": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+            # "SystemDate": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+            "SystemDate": "2026-03-01T6:00:00",
             "Token": api_token,
         }
     }
