@@ -182,7 +182,7 @@ def run_module():
         dest=dict(type="str", required=True, no_log=False),
         fics_api_url=dict(type="str", required=True, no_log=False),
         api_token=dict(type="str", required=True, no_log=True),
-        api_update_database=dict(type="str", required=True, no_log=False),
+        api_update_database=dict(type="bool", required=True, no_log=False),
         api_log_directory=dict(type="str", required=False, no_log=False),
     )    
 
@@ -201,6 +201,7 @@ def run_module():
 
     api_url: str = module.params["fics_api_url"]
     api_token: str = module.params["api_token"]
+    api_update_database: bool = module.params["api_log_directory"]
     api_log_directory: str = module.params["api_log_directory"]
     dest: str = module.params["dest"]
 
