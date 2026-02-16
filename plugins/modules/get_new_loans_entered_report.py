@@ -235,7 +235,7 @@ def run_module():
                     changed=False,
                     failed=True,
                 )
-            base64_file = trial_resp.get("DocumentCollection", {}).get("DocumentBase64", None)
+            base64_file = trial_resp.get("DocumentCollection", []).get("DocumentBase64", None)
             if base64_file:
                 port_report = base64.b64decode(base64_file)
                 with open(module.params["dest"], "wb") as port_report_file:
