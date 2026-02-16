@@ -201,7 +201,7 @@ def run_module():
 
     api_url: str = module.params["fics_api_url"]
     api_token: str = module.params["api_token"]
-    api_update_database: bool = module.params["api_log_directory"]
+    api_update_database: bool = module.params["api_update_database"]
     api_log_directory: str = module.params["api_log_directory"]
     dest: str = module.params["dest"]
 
