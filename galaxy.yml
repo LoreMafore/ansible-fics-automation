@@ -7,7 +7,7 @@ namespace: dtvillafana
 name: fics
 
 # The version of the collection. Must be compatible with semantic versioning
-version: test
+version: 3.6.1
 
 # The path to the Markdown (.md) readme file. This path is relative to the root of the collection
 readme: README.md
