@@ -133,10 +133,17 @@ def log_function_call(log_path: str, func: Callable[..., Any], *args, **kwargs) 
         logger.removeHandler(handler)
 
 
-def call_api(base_url: str, method: str, endpoint: str, parameters: dict):
+def call_api(
+    base_url: str, 
+    method: str, 
+    endpoint: str, 
+    parameters: dict,
+    api_token: str
+):
     # Define the headers (if required)
     headers = {
         "Content-Type": "application/json",  # Adjust the content type as needed
+        "X-API-KEY": api_token
     }
 
     # Send the POST request
@@ -193,26 +200,58 @@ def get_ots_schedule_cmr_report(
     api_token: str, 
     api_log_directory: str,
 ) -> dict:
-    params: dict = {
-        "Message":{
-            "SystemDate": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
-            "Token": api_token,
-        }
-    }
+    # params: dict = {
+    #     "Message":{
+    #         "SystemDate": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+    #         "Token": api_token,
+    #     }
+    # }
     return log_function_call(
         api_log_directory,
         call_api,
         base_url=api_url,
         method="post",
-        endpoint="BuildOtsScheduleCmrReport",
-        parameters=params,
+        endpoint="/api/get_ots_report/",
+        # parameters=params,
+        api_token=api_token
     )
+
+
+def generate_csv(response, dest):
+    data = response.json
+    results = data["results"]
+    all_rows = []
+
+    title_rows = [''] * 7
+    title_rows[0] = "Num Loans"
+    title_rows[1] = "Investor Name"
+    title_rows[2] = "Bk-Inv-Grp"
+    title_rows[3] = "Total Balances"
+    title_rows[4] = "Avg Rem Term"
+    title_rows[5] = "Years"
+    title_rows[6] = "Avg Int Rate"
+    all_rows.append(title_rows)
+
+    for entry in results:
+        rows = [''] * 7
+        rows[0] = entry['num_loans']
+        rows[1] = entry['inv_name']
+        rows[2] = entry['inv_bank_cd'] + '-' + entry['inv_cd'] + '-' + entry['inv_goup_cd']
+        rows[3] = entry['balances']
+        rows[4] = entry['rem_term']
+        rows[5] = entry['years']
+        rows[6] = entry['int_rate']
+        all_rows.append(rows)
+
+    with open(dest, 'w', newline='', encoding='utf-8') as dest:
+        writer = csv.writer(dest)
+        writer.writerows(all_rows)
 
 
 def run_module():
     module_args = dict(
         dest=dict(type="str", required=True, no_log=False),
-        fics_api_url=dict(type="str", required=True, no_log=False),
+        custom_api_url=dict(type="str", required=True, no_log=False),
         api_token=dict(type="str", required=True, no_log=True),
         api_log_directory=dict(type="str", required=False, no_log=False),
         api_due_date=dict(type="str", required=True, no_log=False),
@@ -231,7 +270,7 @@ def run_module():
     # supports check mode
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=False)
 
-    api_url: str = module.params["fics_api_url"]
+    api_url: str = module.params["custom_api_url"]
     api_token: str = module.params["api_token"]
     api_log_directory: str = module.params["api_log_directory"]
     dest: str = module.params["dest"]
@@ -256,7 +295,7 @@ def run_module():
     )
 
     try:
-        if trial_resp.get("ApiCallSuccessful", None):
+        if trial_resp:
             try:
                 os.makedirs(name=str(os.path.dirname(dest)), exist_ok=True)
             except Exception as e:
@@ -266,15 +305,21 @@ def run_module():
                     failed=True,
                 )
 
-            base64_file = trial_resp.get("Document", {}).get("DocumentBase64", None)
-            if base64_file:
-                ots_schedule_cmr_report = base64.b64decode(base64_file)
-                with open(module.params["dest"], "wb") as ots_schedule_cmr_report_file:
-                    ots_schedule_cmr_report_file.write(ots_schedule_cmr_report)
-                result["changed"] = True
-                result["failed"] = False
-                result["msg"] = f"Wrote file at {module.params['dest']}"
-                result["api_response"] = trial_resp
+                try:
+                    generate_csv( trial_resp, dest)
+                    result["changed"] = True
+                    result["failed"] = False
+                    result["msg"] = f"Wrote CSV at {module.params['dest']}"
+                    result["api_response"] = trial_resp
+
+                except Exception as e:
+                    module.fail_json(
+                        msg=f"Failed to write CSV: {type(e).__name__}: {str(e)}",
+                        changed=False,
+                        failed=True,
+                        api_response=trial_resp,
+                    )
+
             else:
                 result["failed"] = True
                 result["msg"] = "no report file found in api response!"
