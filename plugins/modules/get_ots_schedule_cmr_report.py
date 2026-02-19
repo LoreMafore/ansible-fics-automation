@@ -253,8 +253,7 @@ def run_module():
         dest=dict(type="str", required=True, no_log=False),
         custom_api_url=dict(type="str", required=True, no_log=False),
         api_token=dict(type="str", required=True, no_log=True),
-        api_log_directory=dict(type="str", required=False, no_log=False),
-        api_due_date=dict(type="str", required=True, no_log=False),
+        api_log_directory=dict(type="str", required=False, no_log=False)
     )    
 
     # seed the result dict in the object
