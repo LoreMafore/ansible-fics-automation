@@ -206,13 +206,14 @@ def get_ots_schedule_cmr_report(
     #         "Token": api_token,
     #     }
     # }
+    params: dict = {}
     return log_function_call(
         api_log_directory,
         call_api,
         base_url=api_url,
         method="post",
         endpoint="/api/get_ots_report/",
-        # parameters=params,
+        parameters=params,
         api_token=api_token
     )
 
