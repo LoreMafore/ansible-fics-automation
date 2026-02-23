@@ -222,7 +222,7 @@ def generate_csv(response, dest):
     results = sorted(response["results"], key=lambda x: x['inv_group_cd'])
     all_rows = []
 
-    title_rows = [''] * 7
+    title_rows = [''] * 10
     title_rows[0] = "Num Loans"
     title_rows[1] = "Investor Name"
     title_rows[2] = "Bk-Inv-Grp"
@@ -230,18 +230,36 @@ def generate_csv(response, dest):
     title_rows[4] = "Avg Rem Term"
     title_rows[5] = "Years"
     title_rows[6] = "Avg Int Rate"
+    title_rows[8] = "Combined Avg Years"
+    title_rows[9] = "Combined Avg Int Rate"
     all_rows.append(title_rows)
 
+    built_rows = {}
     for entry in results:
-        rows = [''] * 7
+        rows = [''] * 10
         rows[0] = entry['num_loans']
         rows[1] = entry['inv_name']
         rows[2] = f"{entry['inv_bank_cd']}-{entry['inv_cd']}-{entry['inv_group_cd']}"
         rows[3] = entry['balances']
         rows[4] = entry['rem_term']
-        rows[5] = entry['years']
-        rows[6] = entry['int_rate']
-        all_rows.append(rows)
+        rows[5] = round(entry['years'], 3)
+        rows[6] = round(entry['int_rate'], 3)
+        built_rows[rows[2]] = rows 
+
+    year10_100: str = '1-100-10'
+    year10_200: str = '1-200-10'
+
+    if year10_100 in built_rows and year10_200 in built_rows:
+        avg_years = round ((built_rows[year10_100][5] + built_rows[year10_200][5])/2,3)
+        built_rows[year10_200][8] = avg_years
+
+    year15_100: str = '1-100-15'
+    year15_200: str = '1-200-15'
+
+    if year15_100 in built_rows and year15_200 in built_rows:
+        avg_years = round ((built_rows[year15_100][5] + built_rows[year15_200][5])/2,3)
+        built_rows[year15_200][8] = avg_years
+
 
     with open(dest, 'w', newline='', encoding='utf-8') as dest:
         writer = csv.writer(dest)
