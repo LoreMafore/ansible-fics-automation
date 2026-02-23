@@ -140,13 +140,10 @@ def call_api(
     parameters: dict,
     api_token: str
 ):
-    # Define the headers (if required)
     headers = {
         "Content-Type": "application/json",  # Adjust the content type as needed
         "X-API-KEY": api_token
     }
-
-    # Send the POST request
 
     http: dict = {
         "post": requests.post,
@@ -222,8 +219,7 @@ def get_ots_schedule_cmr_report(
 
 
 def generate_csv(response, dest):
-    data = response.json
-    results = data["results"]
+    results = response["results"]
     all_rows = []
 
     title_rows = [''] * 7
