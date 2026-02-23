@@ -297,8 +297,8 @@ def run_module():
                 try:
                     pdf_to_csv(pdf_dest, csv_dest)
                     result["changed"] = True
-                    result["failed"] = False
-                    result["msg"] = f"Wrote file at {module.params['dest']}"
+                    result["failed"] = False 
+                    result["msg"] = f"Wrote files at {module.params['pdf_dest']} and {module.params['csv_dest']}"
                     result["api_response"] = trial_resp
 
                 except Exception as e:
