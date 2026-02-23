@@ -236,7 +236,7 @@ def generate_csv(response, dest):
         rows = [''] * 7
         rows[0] = entry['num_loans']
         rows[1] = entry['inv_name']
-        rows[2] = entry['inv_bank_cd'] + '-' + entry['inv_cd'] + '-' + entry['inv_goup_cd']
+        rows[2] = f"{entry['inv_bank_cd']}-{entry['inv_cd']}-{entry['inv_group_cd']}"
         rows[3] = entry['balances']
         rows[4] = entry['rem_term']
         rows[5] = entry['years']
