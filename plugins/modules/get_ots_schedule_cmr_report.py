@@ -158,8 +158,6 @@ def call_api(
         )
         return None
 
-         raise Exception(f"PDF conversion error: {str(e)}")
-
 
 def get_ots_schedule_cmr_report(
     api_url: str, 
