@@ -206,7 +206,10 @@ def get_ots_schedule_cmr_report(
     #         "Token": api_token,
     #     }
     # }
-    params: dict = {}
+    params: dict = {
+        "user_id": "api_user"
+    }
+
     return log_function_call(
         api_log_directory,
         call_api,
@@ -305,20 +308,20 @@ def run_module():
                     failed=True,
                 )
 
-                try:
-                    generate_csv( trial_resp, dest)
-                    result["changed"] = True
-                    result["failed"] = False
-                    result["msg"] = f"Wrote CSV at {module.params['dest']}"
-                    result["api_response"] = trial_resp
+            try:
+                generate_csv( trial_resp, dest)
+                result["changed"] = True
+                result["failed"] = False
+                result["msg"] = f"Wrote CSV at {module.params['dest']}"
+                result["api_response"] = trial_resp
 
-                except Exception as e:
-                    module.fail_json(
-                        msg=f"Failed to write CSV: {type(e).__name__}: {str(e)}",
-                        changed=False,
-                        failed=True,
-                        api_response=trial_resp,
-                    )
+            except Exception as e:
+                module.fail_json(
+                    msg=f"Failed to write CSV: {type(e).__name__}: {str(e)}",
+                    changed=False,
+                    failed=True,
+                    api_response=trial_resp,
+                )
 
             else:
                 result["failed"] = True
