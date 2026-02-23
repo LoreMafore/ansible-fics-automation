@@ -20,7 +20,7 @@ __metaclass__ = type
 
 DOCUMENTATION = r"""
 ---
-module: get_portfolio_report
+module: get_new_loans_entered_report
 
 short_description: Calls the FICS Mortgage Servicer special services API to generate a document containing all the Portfolio Report.
 
@@ -208,14 +208,16 @@ def pdf_to_csv(pdf_path: str, csv_path:str):
     doc = fitz.open(pdf_path)
     all_rows = []
 
-    for page_num in range(len(doc)):
-        page = doc[page_num]
-        text = page.get_text("words")
-        bboxes = [bbox(*x) for x in text]
-        for b in bboxes:
-            all_rows.append(list(astuple(b)))
-
-    doc.close()
+    rows = [''] * 8 
+    all_rows.append(all_rows)
+    # for page_num in range(len(doc)):
+    #     page = doc[page_num]
+    #     text = page.get_text("words")
+    #     bboxes = [bbox(*x) for x in text]
+    #     for b in bboxes:
+    #         all_rows.append(list(astuple(b)))
+    #
+    # doc.close()
     with open(csv_path, 'w', newline='', encoding='utf-8') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerows(all_rows)
