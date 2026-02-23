@@ -43,16 +43,12 @@ options:
         description: This is the full path to where the file will be created, it creates parent directories if they do not exist
         required: true
         type: str
-    fics_api_url:
+    custom_api_url:
         description: This is the URL of the special service API
         required: true
         type: str
     api_token:
         description: this is the api token used for authentication to the API
-        required: true
-        type: str
-    api_due_date:
-        description: this is the date the application is due
         required: true
         type: str
     api_log_directory:
@@ -66,7 +62,7 @@ EXAMPLES = r"""
 - name: create file to send
   get_ots_schedule_cmr_report:
     dest: /mnt/fics_deliq/IT/Backups/fics/ots_schedule_CMRs_reports_2026-02-07
-    fics_api_url: http://mortgageservicer.fics/MortageServicerService.svc/REST/
+    custom_api_url: http://127.0.0.1:8000
     api_token: ASDFASDFJSDFSHFJJSDGFSJGQWEUI123123SDFSDFJ12312801C15034264BC98B33619F4A547AECBDD412D46A24D2560D5EFDD8DEDFE74325DC2E7B156C60B942
     api_log_directory: /tmp/api_logs/
 """
@@ -83,8 +79,8 @@ changed:
     returned: always
     sample: true
 api_response:
-    description: Document{Base64encoded document}
-    type: str
+    description: The dictionary of data from our API
+    type: dict
     returned: always
 """
 
@@ -141,7 +137,7 @@ def call_api(
     api_token: str
 ):
     headers = {
-        "Content-Type": "application/json",  # Adjust the content type as needed
+        "Content-Type": "application/json",
         "X-API-KEY": api_token
     }
 
@@ -162,34 +158,7 @@ def call_api(
         )
         return None
 
-#
-# def convert_pdf_to_csv(pdf_bytes: bytes) -> list:
-#     """Extract table rows from PDF"""
-#     try:
-#         with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
-#             all_rows = []
-#             
-#             for page in pdf.pages:
-#                 text = page.extract_text()
-#                 if not text:
-#                     continue
-#
-#                 lines = text.split('\n')
-#
-#                 for line in lines:
-#                     if not line.strip():
-#                         continue
-#
-#                     row = re.split(r'  +', line.strip())
-#                     row = [cell.strip() for cell in row if cell.strip()]
-#
-#                     if row:
-#                         all_rows.append(row)
-#                         
-#             return all_rows
-#             
-#     except Exception as e:
-#         raise Exception(f"PDF conversion error: {str(e)}")
+         raise Exception(f"PDF conversion error: {str(e)}")
 
 
 def get_ots_schedule_cmr_report(
@@ -197,12 +166,6 @@ def get_ots_schedule_cmr_report(
     api_token: str, 
     api_log_directory: str,
 ) -> dict:
-    # params: dict = {
-    #     "Message":{
-    #         "SystemDate": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
-    #         "Token": api_token,
-    #     }
-    # }
     params: dict = {
         "user_id": "api_user"
     }
@@ -349,36 +312,7 @@ def run_module():
                 failed=True,
                 api_response=trial_resp,
             )
-            # base64_file = trial_resp.get("Document", {}).get("DocumentBase64", None)
-            # if base64_file:
-            #     ots_schedule_cmr_report = base64.b64decode(base64_file)
-            #     
-            #     try:
-            #         csv_rows = convert_pdf_to_csv(ots_schedule_cmr_report)
-            #
-            #         if not csv_rows:
-            #             module.fail_json(
-            #             msg="No tables found in PDF",
-            #             changed=False,
-            #             failed=True,
-            #             )
-            #
-            #         with open(module.params["dest"], "w", newline='', encoding='utf-8') as f:
-            #             writer = csv.writer(f)
-            #             writer.writerows(csv_rows)
-            #             
-            #         result["changed"] = True
-            #         result["failed"] = False
-            #         result["msg"] = f"Wrote CSV file with {len(csv_rows)} rows at {module.params['dest']}"
-            #         result["api_response"] = trial_resp
-            #
-            #     except Exception as e:
-            #         module.fail_json(
-            #         msg=f"Failed to convert PDF to CSV: {str(e)}",
-            #         changed=False,
-            #         failed=True,
-            #     )
-
+            
     except Exception as e:
         module.fail_json(msg=f"failed to create file: {e}", changed=False, failed=True)
 
