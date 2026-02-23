@@ -219,7 +219,7 @@ def get_ots_schedule_cmr_report(
 
 
 def generate_csv(response, dest):
-    results = response["results"]
+    results = sorted(response["results"], key=lambda x: x['inv_group_cd'])
     all_rows = []
 
     title_rows = [''] * 7
