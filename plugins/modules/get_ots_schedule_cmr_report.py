@@ -319,11 +319,6 @@ def run_module():
                     api_response=trial_resp,
                 )
 
-            else:
-                result["failed"] = True
-                result["msg"] = "no report file found in api response!"
-                result["api_response"] = trial_resp
-
         else:
             module.fail_json(
                 msg="API call unsuccessful",
