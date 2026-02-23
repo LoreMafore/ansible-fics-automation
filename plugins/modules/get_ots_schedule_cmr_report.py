@@ -251,14 +251,18 @@ def generate_csv(response, dest):
 
     if year10_100 in built_rows and year10_200 in built_rows:
         avg_years = round ((built_rows[year10_100][5] + built_rows[year10_200][5])/2,3)
+        avg_int_rate = round ((built_rows[year10_100][6] + built_rows[year10_200][6])/2,3)
         built_rows[year10_200][8] = avg_years
+        built_rows[year10_200][9] = avg_int_rate
 
     year15_100: str = '1-100-15'
     year15_200: str = '1-200-15'
 
     if year15_100 in built_rows and year15_200 in built_rows:
         avg_years = round ((built_rows[year15_100][5] + built_rows[year15_200][5])/2,3)
+        avg_int_rate = round ((built_rows[year15_100][6] + built_rows[year15_200][6])/2,3)
         built_rows[year15_200][8] = avg_years
+        built_rows[year15_200][9] = avg_int_rate
 
     all_rows.extend(built_rows.values())
 
