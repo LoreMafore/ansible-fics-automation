@@ -260,6 +260,7 @@ def generate_csv(response, dest):
         avg_years = round ((built_rows[year15_100][5] + built_rows[year15_200][5])/2,3)
         built_rows[year15_200][8] = avg_years
 
+    all_rows.extend(built_rows.values())
 
     with open(dest, 'w', newline='', encoding='utf-8') as dest:
         writer = csv.writer(dest)
