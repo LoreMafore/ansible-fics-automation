@@ -262,8 +262,12 @@ def run_module():
             )
 
     except Exception as e:
-        module.fail_json(msg=f"failed to create file: {e}", changed=False, failed=True)
-
+        module.fail_json(
+            msg=f"failed to create file: {type(e).__name__}: {e}",  # ← add type
+            changed=False,
+            failed=True,
+            api_response=trial_resp,  # ← add this so you can see the response
+        )
     # in the event of a successful module execution, you will want to
     # simple AnsibleModule.exit_json(), passing the key/value results
     module.exit_json(**result)
