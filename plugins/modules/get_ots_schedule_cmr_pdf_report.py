@@ -234,7 +234,7 @@ def run_module():
                     failed=True,
                 )
 
-            doc_collection = trial_resp.get("Document", [])
+            doc_collection = trial_resp.get("Document", {})
             if doc_collection and len(doc_collection) > 0:
                 base64_file = doc_collection[0].get("DocumentBase64", None)
             else:
@@ -263,10 +263,10 @@ def run_module():
 
     except Exception as e:
         module.fail_json(
-            msg=f"failed to create file: {type(e).__name__}: {e}",  # ← add type
+            msg=f"failed to create file: {type(e).__name__}: {e}",
             changed=False,
             failed=True,
-            api_response=trial_resp,  # ← add this so you can see the response
+            api_response=trial_resp, 
         )
     # in the event of a successful module execution, you will want to
     # simple AnsibleModule.exit_json(), passing the key/value results
