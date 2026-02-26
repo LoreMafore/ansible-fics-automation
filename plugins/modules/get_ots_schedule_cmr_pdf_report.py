@@ -161,7 +161,6 @@ def get_ots_schedule_cmr_pdf_report(
     api_url: str, 
     api_token: str, 
     api_log_directory: str,
-    api_due_date: str,
 ) -> dict:
     params: dict = {
         "Message":{
@@ -185,7 +184,6 @@ def run_module():
         fics_api_url=dict(type="str", required=True, no_log=False),
         api_token=dict(type="str", required=True, no_log=True),
         api_log_directory=dict(type="str", required=False, no_log=False),
-        api_due_date=dict(type="str", required=True, no_log=False),
     )    
 
     # seed the result dict in the object
@@ -204,7 +202,6 @@ def run_module():
     api_url: str = module.params["fics_api_url"]
     api_token: str = module.params["api_token"]
     api_log_directory: str = module.params["api_log_directory"]
-    api_due_date: str = module.params["api_due_date"]
     dest: str = module.params["dest_pdf"]
 
     # if the user is working with this module in only check mode we do not
@@ -217,7 +214,6 @@ def run_module():
         api_url=api_url, 
         api_token=api_token, 
         api_log_directory=api_log_directory,
-        api_due_date=api_due_date,
     )
 
     if trial_resp is None:
