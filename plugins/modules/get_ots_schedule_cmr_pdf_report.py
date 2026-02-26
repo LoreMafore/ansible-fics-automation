@@ -236,7 +236,7 @@ def run_module():
 
             doc_collection = trial_resp.get("Document", {})
             if doc_collection and len(doc_collection) > 0:
-                base64_file = doc_collection[0].get("DocumentBase64", None)
+                base64_file = doc_collection.get("DocumentBase64", None)
             else:
                 base64_file = None
 
