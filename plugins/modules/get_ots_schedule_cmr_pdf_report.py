@@ -202,7 +202,7 @@ def run_module():
     api_url: str = module.params["fics_api_url"]
     api_token: str = module.params["api_token"]
     api_log_directory: str = module.params["api_log_directory"]
-    dest: str = module.params["dest_pdf"]
+    dest: str = module.params["dest"]
 
     # if the user is working with this module in only check mode we do not
     # want to make any changes to the environment, just return the current
