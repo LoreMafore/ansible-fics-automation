@@ -4,7 +4,6 @@
 #                      David Villafaña <david.villafana@capcu.org>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 from __future__ import absolute_import, division, print_function
-from http.client import responses
 from dataclasses import dataclass
 from dataclasses import astuple
 from ansible.module_utils.basic import AnsibleModule
@@ -152,11 +151,10 @@ def log_function_call(log_path: str, func: Callable[..., Any], *args, **kwargs) 
         logger.removeHandler(handler)
 
 
-def call_api(base_url: str, method: str, endpoint: str, parameters: dict, api_token: str):
+def call_api(base_url: str, method: str, endpoint: str, parameters: dict):
     # Define the headers (if required)
     headers = {
         "Content-Type": "application/json",  # Adjust the content type as needed
-        "X-API-KEY": api_token
     }
 
     # Send the POST request
@@ -179,87 +177,59 @@ def call_api(base_url: str, method: str, endpoint: str, parameters: dict, api_to
         return None
 
 
-def get_new_loans_entered_report(
+def get_new_loans_entered_pdf_report(
     api_url: str, 
     api_token: str,
+    api_update_database: bool,
     api_log_directory: str,
 ) -> dict:
     params: dict = {
+        "Message":{
+            "PrintCoupons": False,
+            "UpdateDatabase": api_update_database,
+            "SystemDate": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+            "Token": api_token,
+        }
     }
     return log_function_call(
         api_log_directory,
         call_api,
         base_url=api_url,
         method="post",
-        endpoint="/api/get_new_loans",
+        endpoint="CreateNewLoansEnteredReport",
         parameters=params,
     )
 
+def sort_bboxes_into_lines():
+    print("do stuff")
 
 
-def generate_csv(response, dest):
+def pdf_to_csv(pdf_path: str, csv_path:str):
+    doc = fitz.open(pdf_path)
     all_rows = []
-    item_count : int = response.len();
-    pb_total : int = 0;
-    pip_total : int = 0;
-    tib_total : int = 0;
-    sb_total : int = 0;
-    iytd_total : int = 0;
 
-    title_rows = [''] * 11 
-    title_rows[0] = 'Investor Name' 
-    title_rows[1] = 'Bk-Inv-Grp' 
-    title_rows[2] = 'Loan #' 
-    title_rows[3] = 'Loan Name' 
-    title_rows[4] = 'Due Date' 
-    title_rows[5] = 'Principal Balance' 
-    title_rows[6] = 'P&I Payment' 
-    title_rows[7] = 'Interest Rate' 
-    title_rows[8] = 'T&I Balance' 
-    title_rows[9] = 'Subsidy Balance' 
-    title_rows[10] = 'Interest Year-To-Date' 
-    all_rows.append(title_rows)
-
-    for entry in response: 
-        row = [''] * 11
-        row[0] = entry['inv_name']
-        row[1] = f"{entry['inv_bank_cd']}-{entry['inv_cd']}-{entry['inv_group_cd']}"
-        row[2] = entry['loan_id']
-        row[3] = entry['loan_name']
-        row[4] = entry['due_date']
-        row[5] = entry['prin_balance']
-        row[6] = entry['pi_payment']
-        row[7] = entry['interest_rate']
-        row[8] = entry['ti_balance']
-        row[9] = entry['subsidy']
-        row[10] = entry['interest_ytd']
-        all_rows.append(row)
-
-        pb_total += entry['prin_balance']
-        pip_total += entry['pi_payment']
-        tib_total += entry['ti_balance']
-        sb_total += entry['subsidy']
-        iytd_total += entry['interest_ytd']
-
-    total_row = [''] * 11
-    total_row[0] = "Total" 
-    total_row[5] = pb_total 
-    total_row[6] = pip_total 
-    total_row[8] = tib_total 
-    total_row[9] = sb_total
-    total_row[10] = iytd_total
-    all_rows.append(total_row)
-
-    with open(dest, 'w', newline='', encoding='utf-8') as dest:
-        writer = csv.writer(dest)
+    rows = [''] * 8 
+    all_rows.append(all_rows)
+    # for page_num in range(len(doc)):
+    #     page = doc[page_num]
+    #     text = page.get_text("words")
+    #     bboxes = [bbox(*x) for x in text]
+    #     for b in bboxes:
+    #         all_rows.append(list(astuple(b)))
+    #
+    # doc.close()
+    with open(csv_path, 'w', newline='', encoding='utf-8') as csvfile:
+        writer = csv.writer(csvfile)
         writer.writerows(all_rows)
 
 
 def run_module():
     module_args = dict(
-        dest=dict(type="str", required=True, no_log=False),
-        custom_api_url=dict(type="str", required=True, no_log=False),
+        pdf_dest=dict(type="str", required=True, no_log=False),
+        csv_dest=dict(type="str", required=True, no_log=False),
+        fics_api_url=dict(type="str", required=True, no_log=False),
         api_token=dict(type="str", required=True, no_log=True),
+        api_update_database=dict(type="bool", required=True, no_log=False),
         api_log_directory=dict(type="str", required=False, no_log=False),
     )    
 
@@ -276,10 +246,12 @@ def run_module():
     # supports check mode
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=False)
 
-    api_url: str = module.params["custom_api_url"]
+    pdf_dest: str = module.params["pdf_dest"]
+    csv_dest: str = module.params["csv_dest"]
+    api_url: str = module.params["fics_api_url"]
     api_token: str = module.params["api_token"]
+    api_update_database: bool = module.params["api_update_database"]
     api_log_directory: str = module.params["api_log_directory"]
-    dest: str = module.params["dest"]
 
     # if the user is working with this module in only check mode we do not
     # want to make any changes to the environment, just return the current
@@ -290,6 +262,7 @@ def run_module():
     trial_resp: dict = get_new_loans_entered_report(
         api_url=api_url, 
         api_token=api_token,
+        api_update_database=api_update_database,
         api_log_directory=api_log_directory,
     )
 
@@ -301,30 +274,45 @@ def run_module():
     )
 
     try:
-        if trial_resp:
+        if trial_resp.get("ApiCallSuccessful", None):
             try:
-                os.makedirs(name=str(os.path.dirname(dest)), exist_ok=True)
+                os.makedirs(name=str(os.path.dirname(pdf_dest)), exist_ok=True)
             except Exception as e:
                 module.fail_json(
                     msg=f"failed to create parent directories: {e}",
                     changed=False,
                     failed=True,
                 )
+            base64_file = None
+            doc_collection = trial_resp.get("DocumentCollection", [])
+            for doc in doc_collection:
+                if doc.get("Name") == "NewLoansEnteredReport":
+                    base64_file = doc.get("DocumentBase64")
 
-            try:
-                generate_csv( trial_resp, dest)
-                result["changed"] = True
-                result["failed"] = False
-                result["msg"] = f"Wrote CSV at {module.params['dest']}"
+            if base64_file:
+                new_loans_entered = base64.b64decode(base64_file)
+                with open(module.params["pdf_dest"], "wb") as new_loans_entered_file:
+                    new_loans_entered_file.write(new_loans_entered)
+
+                try:
+                    pdf_to_csv(pdf_dest, csv_dest)
+                    result["changed"] = True
+                    result["failed"] = False 
+                    result["msg"] = f"Wrote files at {module.params['pdf_dest']} and {module.params['csv_dest']}"
+                    result["api_response"] = trial_resp
+
+                except Exception as e:
+                    module.fail_json(
+                        msg=f"Wrote PDF at {module.params['pdf_dest']} but failed to write CSV: {type(e).__name__}: {str(e)}",
+                        changed=False,
+                        failed=True,
+                        api_response=trial_resp,
+                    )
+                    
+            else:
+                result["failed"] = True
+                result["msg"] = "no report file found in api response!"
                 result["api_response"] = trial_resp
-
-            except Exception as e:
-                module.fail_json(
-                    msg=f"Failed to write CSV: {type(e).__name__}: {str(e)}",
-                    changed=False,
-                    failed=True,
-                    api_response=trial_resp,
-                )
 
         else:
             module.fail_json(
@@ -333,10 +321,12 @@ def run_module():
                 failed=True,
                 api_response=trial_resp,
             )
-            
+
     except Exception as e:
         module.fail_json(msg=f"failed to create file: {e}", changed=False, failed=True)
 
+    # in the event of a successful module execution, you will want to
+    # simple AnsibleModule.exit_json(), passing the key/value results
     module.exit_json(**result)
 
 
