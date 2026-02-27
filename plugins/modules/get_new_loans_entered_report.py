@@ -163,6 +163,7 @@ def get_new_loans_entered_report(
     api_log_directory: str,
 ) -> dict:
     params: dict = {
+        "user_id": ""
     }
     return log_function_call(
         api_log_directory,
