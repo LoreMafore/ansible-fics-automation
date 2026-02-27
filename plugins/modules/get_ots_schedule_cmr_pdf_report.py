@@ -84,6 +84,7 @@ api_response:
     returned: always
 """
 
+
 def log_function_call(log_path: str, func: Callable[..., Any], *args, **kwargs) -> Any:
     # Ensure the directory for the log file exists
     os.makedirs(os.path.dirname(log_path), exist_ok=True)
