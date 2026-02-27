@@ -11,7 +11,6 @@ import logging
 import os
 import base64
 from datetime import datetime
-import calendar
 
 __metaclass__ = type
 
