@@ -155,7 +155,7 @@ def call_api(base_url: str, method: str, endpoint: str, parameters: dict):
         return None
 
 
-def get_ots_schedule_cmr_pdf_report(
+def get_ots_schedule_cmr_report(
     api_url: str, 
     api_token: str, 
     api_log_directory: str,
@@ -182,6 +182,7 @@ def run_module():
         fics_api_url=dict(type="str", required=True, no_log=False),
         api_token=dict(type="str", required=True, no_log=True),
         api_log_directory=dict(type="str", required=False, no_log=False),
+        api_due_date=dict(type="str", required=True, no_log=False),
     )    
 
     # seed the result dict in the object
@@ -208,7 +209,7 @@ def run_module():
     if module.check_mode:
         module.exit_json(**result)
 
-    trial_resp: dict = get_ots_schedule_cmr_pdf_report(
+    trial_resp: dict = get_ots_schedule_cmr_report(
         api_url=api_url, 
         api_token=api_token, 
         api_log_directory=api_log_directory,
@@ -232,16 +233,11 @@ def run_module():
                     failed=True,
                 )
 
-            doc_collection = trial_resp.get("Document", {})
-            if doc_collection and len(doc_collection) > 0:
-                base64_file = doc_collection.get("DocumentBase64", None)
-            else:
-                base64_file = None
-
+            base64_file = trial_resp.get("Document", {}).get("DocumentBase64", None)
             if base64_file:
-                ots_report = base64.b64decode(base64_file)
-                with open(module.params["dest"], "wb") as ots_report_file:
-                    ots_report_file.write(ots_report)
+                ots_schedule_cmr_report = base64.b64decode(base64_file)
+                with open(module.params["dest"], "wb") as ots_schedule_cmr_report_file:
+                    ots_schedule_cmr_report_file.write(ots_schedule_cmr_report)
                 result["changed"] = True
                 result["failed"] = False
                 result["msg"] = f"Wrote file at {module.params['dest']}"
@@ -260,14 +256,8 @@ def run_module():
             )
 
     except Exception as e:
-        module.fail_json(
-            msg=f"failed to create file: {type(e).__name__}: {e}",
-            changed=False,
-            failed=True,
-            api_response=trial_resp, 
-        )
-    # in the event of a successful module execution, you will want to
-    # simple AnsibleModule.exit_json(), passing the key/value results
+        module.fail_json(msg=f"failed to create file: {e}", changed=False, failed=True)
+
     module.exit_json(**result)
 
 
