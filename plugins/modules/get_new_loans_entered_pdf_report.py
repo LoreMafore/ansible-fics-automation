@@ -229,7 +229,7 @@ def run_module():
     try:
         if trial_resp.get("ApiCallSuccessful", None):
             try:
-                os.makedirs(name=str(os.path.dirname(pdf_dest)), exist_ok=True)
+                os.makedirs(name=str(os.path.dirname(dest)), exist_ok=True)
             except Exception as e:
                 module.fail_json(
                     msg=f"failed to create parent directories: {e}",
