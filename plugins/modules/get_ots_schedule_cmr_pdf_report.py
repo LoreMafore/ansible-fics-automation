@@ -23,7 +23,7 @@ short_description: Calls the FICS Mortgage Servicer special services API to gene
 
 # If this is part of a collection, you need to use semantic versioning,
 # i.e. the version is of the form "2.5.0" and not "2.4".
-version_added: "3.3.0"
+version_added: "3.6.0"
 
 description:
     - Calls the FICS Mortgage Servicer special services API to create the OTS Schedule CMR Reports file at the specified destination.
