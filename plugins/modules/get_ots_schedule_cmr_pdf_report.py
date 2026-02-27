@@ -4,7 +4,6 @@
 #                      David Villafaña <david.villafana@capcu.org>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 from __future__ import absolute_import, division, print_function
-from sqlite3 import Row
 from ansible.module_utils.basic import AnsibleModule
 from typing import Callable, Any
 import requests
@@ -12,10 +11,6 @@ import logging
 import os
 import base64
 from datetime import datetime
-import pdfplumber
-import io
-import csv
-import re
 
 __metaclass__ = type
 
@@ -23,14 +18,14 @@ DOCUMENTATION = r"""
 ---
 module: get_ots_schedule_cmr_report
 
-short_description: Calls the FICS Mortgage Servicer special services API to generate a document containing all the OTS Schedule CMRs.
+short_description: Calls the FICS Mortgage Servicer special services API to generate a document containing all the OTS Schedule CMR Reports.
 
 # If this is part of a collection, you need to use semantic versioning,
 # i.e. the version is of the form "2.5.0" and not "2.4".
-version_added: "3.5.0"
+version_added: "3.6.0"
 
 description:
-    - Calls the FICS Mortgage Servicer special services API to create the OTS Schedule CMR file at the specified destination. 
+    - Calls the FICS Mortgage Servicer special services API to create the OTS Schedule CMR Reports file at the specified destination.
     - Disclaimer: this module has only been tested for our exact use case
 
 author:
@@ -59,15 +54,15 @@ options:
         description: this is the directory that the API logs will be created in
         required: false
         type: str
-
 """
 
 EXAMPLES = r"""
 - name: create file to send
-  get_ots_schedule_cmr_report:
-    dest: /mnt/fics_deliq/IT/Backups/fics/ots_schedule_CMRs_reports_2026-02-07
-    fics_api_url: http://mortgageservicer.fics/MortageServicerService.svc/REST/
+  get_ots_schedule_cmr_pdf_report:
+    dest: /mnt/fics_deliq/IT/Backups/fics/ots_report.pdf
+    fics_api_url: http://mortgageservicer.fics/MortgageService.svc/REST/
     api_token: ASDFASDFJSDFSHFJJSDGFSJGQWEUI123123SDFSDFJ12312801C15034264BC98B33619F4A547AECBDD412D46A24D2560D5EFDD8DEDFE74325DC2E7B156C60B942
+    api_due_date: 2026-01-31T23:59:59"
     api_log_directory: /tmp/api_logs/
 """
 
@@ -76,7 +71,7 @@ msg:
     description: The result message of the download operation
     type: str
     returned: always
-    sample: '"Wrote files to /mnt/fics_deliq/IT/Backups/fics/ots_schedule_CMRs_reports_2026-02-07"'
+    sample: '"Wrote files to /mnt/fics_deliq/IT/Backups/fics/ots_schedule_cmr_report.pdf"'
 changed:
     description: Whether any local files were changed
     type: bool
