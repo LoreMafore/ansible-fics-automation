@@ -180,8 +180,7 @@ def get_new_loans_entered_pdf_report(
 
 def run_module():
     module_args = dict(
-        pdf_dest=dict(type="str", required=True, no_log=False),
-        csv_dest=dict(type="str", required=True, no_log=False),
+        dest=dict(type="str", required=True, no_log=False),
         fics_api_url=dict(type="str", required=True, no_log=False),
         api_token=dict(type="str", required=True, no_log=True),
         api_update_database=dict(type="bool", required=True, no_log=False),
