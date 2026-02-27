@@ -230,6 +230,10 @@ def generate_csv(response, dest):
     total_row[10] = iytd_total
     all_rows.append(total_row)
 
+    item_row = [''] * 11 
+    item_row = f"Item count = {item_count}"
+    all_rows.append(item_row)
+
     with open(dest, 'w', newline='', encoding='utf-8') as dest:
         writer = csv.writer(dest)
         writer.writerows(all_rows)
