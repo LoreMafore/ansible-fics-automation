@@ -200,8 +200,7 @@ def run_module():
     # supports check mode
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=False)
 
-    pdf_dest: str = module.params["pdf_dest"]
-    csv_dest: str = module.params["csv_dest"]
+    dest: str = module.params["dest"]
     api_url: str = module.params["fics_api_url"]
     api_token: str = module.params["api_token"]
     api_update_database: bool = module.params["api_update_database"]
@@ -245,7 +244,7 @@ def run_module():
 
             if base64_file:
                 new_loans_entered = base64.b64decode(base64_file)
-                with open(module.params["pdf_dest"], "wb") as new_loans_entered_file:
+                with open(module.params["dest"], "wb") as new_loans_entered_file:
                     new_loans_entered_file.write(new_loans_entered)
                 result["changed"] = True
                 result["failed"] = False
