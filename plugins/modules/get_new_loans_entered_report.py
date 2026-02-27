@@ -291,7 +291,7 @@ def run_module():
                 )
 
             try:
-                generate_csv( trial_resp, dest)
+                generate_csv( trial_resp["results"], dest)
                 result["changed"] = True
                 result["failed"] = False
                 result["msg"] = f"Wrote CSV at {module.params['dest']}"
