@@ -14,4 +14,3 @@ Ansible collection for FICS products
 - get_ffiec_call_report
 - get_portfolio_report
 - get_ots_schedule_cmr_pdf_report
-- get_ots_schedule_cmr_report
