@@ -60,7 +60,7 @@ options:
 EXAMPLES = r"""
 - name: create file to send
   get_ots_schedule_cmr_pdf_report:
-    dest: /mnt/fics_deliq/IT/Backups/fics/.pdf
+    dest: /mnt/fics_deliq/IT/Backups/fics/ots_report.pdf
     fics_api_url: http://mortgageservicer.fics/BatchService.svc/REST/
     api_token: ASDFASDFJSDFSHFJJSDGFSJGQWEUI123123SDFSDFJ12312801C15034264BC98B33619F4A547AECBDD412D46A24D2560D5EFDD8DEDFE74325DC2E7B156C60B942
     api_due_date: 2026-01-31T23:59:59"
