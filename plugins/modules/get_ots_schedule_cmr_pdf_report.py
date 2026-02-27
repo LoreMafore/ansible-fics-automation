@@ -83,9 +83,6 @@ api_response:
     type: str
     returned: always
 """
-ACTUAL : int = 1
-BANKINVGROUP : int = 3
-FACTOR360 : int = 0
 
 def log_function_call(log_path: str, func: Callable[..., Any], *args, **kwargs) -> Any:
     # Ensure the directory for the log file exists
