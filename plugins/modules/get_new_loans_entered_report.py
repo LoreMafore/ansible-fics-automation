@@ -177,6 +177,7 @@ def get_new_loans_entered_report(
 
 
 def generate_csv(response, dest):
+    results = response["results"]
     all_rows = []
     item_count : int = len(response["results"]);
     pb_total : int = 0;
@@ -199,7 +200,7 @@ def generate_csv(response, dest):
     title_rows[10] = 'Interest Year-To-Date' 
     all_rows.append(title_rows)
 
-    for entry in response: 
+    for entry in results: 
         row = [''] * 11
         row[0] = entry['inv_name']
         row[1] = f"{entry['inv_bank_cd']}-{entry['inv_cd']}-{entry['inv_group_cd']}"
@@ -291,7 +292,7 @@ def run_module():
                 )
 
             try:
-                generate_csv( trial_resp["results"], dest)
+                generate_csv(trial_resp, dest)
                 result["changed"] = True
                 result["failed"] = False
                 result["msg"] = f"Wrote CSV at {module.params['dest']}"
