@@ -171,6 +171,7 @@ def get_new_loans_entered_report(
         method="post",
         endpoint="/api/get_new_loans",
         parameters=params,
+        api_token=api_token
     )
 
 
