@@ -178,7 +178,7 @@ def get_new_loans_entered_report(
 
 def generate_csv(response, dest):
     all_rows = []
-    item_count : int = response.len();
+    item_count : int = len(response["results"]);
     pb_total : int = 0;
     pip_total : int = 0;
     tib_total : int = 0;
