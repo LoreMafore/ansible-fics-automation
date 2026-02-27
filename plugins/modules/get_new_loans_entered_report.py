@@ -14,7 +14,6 @@ import logging
 import os
 import base64
 from datetime import datetime
-import fitz
 import csv
 
 __metaclass__ = type
@@ -86,27 +85,6 @@ api_response:
     type: str
     returned: always
 """
-
-@dataclass(frozen=True)
-class bbox:
-    x0: float
-    y0: float
-    x: float
-    y: float
-    word: str
-    block: int
-    line: int
-    word_no: int
-
-@dataclass
-class PdfLine:
-    linenum: int
-    list[bbox]
-
-
-@dataclass
-class page_representation:
-    lines: list[PdfLine]
 
 def log_function_call(log_path: str, func: Callable[..., Any], *args, **kwargs) -> Any:
     # Ensure the directory for the log file exists
@@ -194,7 +172,6 @@ def get_new_loans_entered_report(
         endpoint="/api/get_new_loans",
         parameters=params,
     )
-
 
 
 def generate_csv(response, dest):
