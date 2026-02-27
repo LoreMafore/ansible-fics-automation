@@ -231,7 +231,7 @@ def generate_csv(response, dest):
     all_rows.append(total_row)
 
     item_row = [''] * 11 
-    item_row = f"Item count = {item_count}"
+    item_row[0] = f"Item count = {item_count}"
     all_rows.append(item_row)
 
     with open(dest, 'w', newline='', encoding='utf-8') as dest:
