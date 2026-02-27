@@ -19,14 +19,14 @@ DOCUMENTATION = r"""
 ---
 module: get_ots_schedule_cmr_report
 
-short_description: Calls the FICS Mortgage Servicer special services API to generate a document containing all the Interest Accrual Reports.
+short_description: Calls the FICS Mortgage Servicer special services API to generate a document containing all the OTS Schedule CMR Reports.
 
 # If this is part of a collection, you need to use semantic versioning,
 # i.e. the version is of the form "2.5.0" and not "2.4".
 version_added: "3.3.0"
 
 description:
-    - Calls the FICS Mortgage Servicer special services API to create the Interest Accrual Reports file at the specified destination.
+    - Calls the FICS Mortgage Servicer special services API to create the OTS Schedule CMR Reports file at the specified destination.
     - Disclaimer: this module has only been tested for our exact use case
 
 author:
@@ -59,7 +59,7 @@ options:
 
 EXAMPLES = r"""
 - name: create file to send
-  get_interest_accrual_report:
+  get_ots_schedule_cmr_pdf_report:
     dest: /mnt/fics_deliq/IT/Backups/fics/.pdf
     fics_api_url: http://mortgageservicer.fics/BatchService.svc/REST/
     api_token: ASDFASDFJSDFSHFJJSDGFSJGQWEUI123123SDFSDFJ12312801C15034264BC98B33619F4A547AECBDD412D46A24D2560D5EFDD8DEDFE74325DC2E7B156C60B942
@@ -239,9 +239,9 @@ def run_module():
                 base64_file = None
 
             if base64_file:
-                interest_accrual_report = base64.b64decode(base64_file)
-                with open(module.params["dest"], "wb") as interest_accrual_report_file:
-                    interest_accrual_report_file.write(interest_accrual_report)
+                ots_report = base64.b64decode(base64_file)
+                with open(module.params["dest"], "wb") as ots_report_file:
+                    ots_report_file.write(ots_report)
                 result["changed"] = True
                 result["failed"] = False
                 result["msg"] = f"Wrote file at {module.params['dest']}"
