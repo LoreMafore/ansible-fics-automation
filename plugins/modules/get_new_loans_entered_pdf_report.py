@@ -212,7 +212,7 @@ def run_module():
     if module.check_mode:
         module.exit_json(**result)
 
-    trial_resp: dict = get_new_loans_entered_report(
+    trial_resp: dict = get_new_loans_entered_pdf_report(
         api_url=api_url, 
         api_token=api_token,
         api_update_database=api_update_database,
