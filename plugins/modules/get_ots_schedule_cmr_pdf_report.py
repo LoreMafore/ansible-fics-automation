@@ -46,10 +46,6 @@ options:
         description: this is the api token used for authentication to the API
         required: true
         type: str
-    api_due_date:
-        description: this is the date the application is due
-        required: true
-        type: str
     api_log_directory:
         description: this is the directory that the API logs will be created in
         required: false
@@ -62,7 +58,6 @@ EXAMPLES = r"""
     dest: /mnt/fics_deliq/IT/Backups/fics/ots_report.pdf
     fics_api_url: http://mortgageservicer.fics/MortgageService.svc/REST/
     api_token: ASDFASDFJSDFSHFJJSDGFSJGQWEUI123123SDFSDFJ12312801C15034264BC98B33619F4A547AECBDD412D46A24D2560D5EFDD8DEDFE74325DC2E7B156C60B942
-    api_due_date: 2026-01-31T23:59:59"
     api_log_directory: /tmp/api_logs/
 """
 
@@ -181,7 +176,6 @@ def run_module():
         fics_api_url=dict(type="str", required=True, no_log=False),
         api_token=dict(type="str", required=True, no_log=True),
         api_log_directory=dict(type="str", required=False, no_log=False),
-        api_due_date=dict(type="str", required=True, no_log=False),
     )    
 
     # seed the result dict in the object
