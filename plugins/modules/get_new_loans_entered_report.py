@@ -45,7 +45,7 @@ options:
         description: This is the URL of the special service API
         required: true
         type: str
-    api_token:
+    fics_api_token:
         description: this is the api token used for authentication to the API
         required: true
         type: str
@@ -61,8 +61,8 @@ options:
 
 EXAMPLES = r"""
 - name: create file to send
-  get_portfolio_report:
-    dest: /mnt/fics_deliq/IT/Backups/fics/portfolio_report_2026-02-07
+  get_new_loans_entered_report:
+    dest: /mnt/new_loans/IT/Backups/fics/new_loans_entered_report_2026-02-07.pdf
     fics_api_url: http://mortgageservicer.fics/MortgageServicerService.svc/REST/
     api_token: ASDFASDFJSDFSHFJJSDGFSJGQWEUI123123SDFSDFJ12312801C15034264BC98B33619F4A547AECBDD412D46A24D2560D5EFDD8DEDFE74325DC2E7B156C60B942
     api_log_directory: /tmp/api_logs/
@@ -73,7 +73,7 @@ msg:
     description: The result message of the download operation
     type: str
     returned: always
-    sample: '"Wrote files to /mnt/fics_deliq/IT/Backups/fics/new_loans_entered_report-2026-02-07"'
+    sample: '"Wrote files to /mnt/new_loans/IT/Backups/fics/new_loans_entered_report-2026-02-07.pdf"'
 changed:
     description: Whether any local files were changed
     type: bool
