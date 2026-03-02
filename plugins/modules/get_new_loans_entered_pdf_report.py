@@ -21,7 +21,7 @@ DOCUMENTATION = r"""
 ---
 module: get_new_loans_entered_report
 
-short_description: Calls the FICS Mortgage Servicer special services API to generate a document containing all the Portfolio Report.
+short_description: Calls the FICS Mortgage Servicer special services API to generate a document containing all the New Loans Entered Report.
 
 # If this is part of a collection, you need to use semantic versioning,
 # i.e. the version is of the form "2.5.0" and not "2.4".
@@ -250,9 +250,17 @@ def run_module():
                 result["failed"] = False
                 result["msg"] = f"Wrote file at {module.params['dest']}"
                 result["api_response"] = trial_resp
+
+            elif not doc_collection:
+                # no new loans for this month
+                result["changed"] = False
+                result["failed"] = False
+                result["msg"] = "API call successful but no documents returned (no new loans for this period)"
+                result["api_response"] = trial_resp
+
             else:
                 result["failed"] = True
-                result["msg"] = "no report file found in api response!"
+                result["msg"] = "DocumentCollection was non-empty but 'NewLoansEnteredReport' document was not found"
                 result["api_response"] = trial_resp
 
         else:
