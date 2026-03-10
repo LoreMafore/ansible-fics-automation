@@ -9,4 +9,9 @@ Ansible collection for FICS products
 - get_advanced_selector_request
 - process_window_object_data
 - get_delinquent_principal_balances
-- get_amortized_delinquent_report.py
+- get_amortized_delinquent_report
+- get_interest_accural_report
+- get_ffiec_call_report
+- get_portfolio_report
+- get_new_loans_entered_report
+- get_ots_schedule_cmr_pdf_report

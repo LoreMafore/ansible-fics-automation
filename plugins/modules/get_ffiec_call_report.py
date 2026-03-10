@@ -16,16 +16,16 @@ __metaclass__ = type
 
 DOCUMENTATION = r"""
 ---
-module: get_delinquent_principal_balances
+module: get_ffiec_call_report
 
-short_description: Calls the FICS Mortgage Servicer special services API to generate a document containing all the Delinquent Principal Balances.
+short_description: Calls the FICS Mortgage Servicer special services API to generate a document containing all the FFIEX Call Report.
 
 # If this is part of a collection, you need to use semantic versioning,
 # i.e. the version is of the form "2.5.0" and not "2.4".
-version_added: "3.1.0"
+version_added: "3.4.0"
 
 description:
-    - Calls the FICS Mortgage Servicer special services API to create the Delinquent Principal Balances file at the specified destination. 
+    - Calls the FICS Mortgage Servicer special services API to create the FFIEX Call Report file at the specified destination. 
     - Disclaimer: this module has only been tested for our exact use case
 
 author:
@@ -46,10 +46,6 @@ options:
         description: this is the api token used for authentication to the API
         required: true
         type: str
-    api_due_date:
-        description: this is the date the application is due
-        required: true
-        type: str
     api_log_directory:
         description: this is the directory that the API logs will be created in
         required: false
@@ -58,11 +54,10 @@ options:
 
 EXAMPLES = r"""
 - name: create file to send
-  get_delinquent_principal_balances:
-    dest: /mnt/fics_deliq/IT/Backups/fics/delinquent_principal_balance_2026-02-07
+  get_ffiec_call_report:
+    dest: /mnt/fics_deliq/IT/Backups/fics/ffiec_call_report_2026-02-07
     fics_api_url: http://mortgageservicer.fics/BatchService.svc/REST/
     api_token: ASDFASDFJSDFSHFJJSDGFSJGQWEUI123123SDFSDFJ12312801C15034264BC98B33619F4A547AECBDD412D46A24D2560D5EFDD8DEDFE74325DC2E7B156C60B942
-    api_due_date: 2026-01-31T23:59:59"
     api_log_directory: /tmp/api_logs/
 """
 
@@ -71,7 +66,7 @@ msg:
     description: The result message of the download operation
     type: str
     returned: always
-    sample: '"Wrote files to /mnt/fics_deliq/IT/Backups/fics/delinquent_principal_balance_2026-02-07"'
+    sample: '"Wrote files to /mnt/fics_deliq/IT/Backups/fics/ffiec_call_report_2026-02-07"'
 changed:
     description: Whether any local files were changed
     type: bool
@@ -154,16 +149,13 @@ def call_api(base_url: str, method: str, endpoint: str, parameters: dict):
         return None
 
 
-def get_delinquent_principal_balances(
+def get_ffiec_call_report(
     api_url: str, 
     api_token: str, 
     api_log_directory: str,
-    api_due_date: str,
 ) -> dict:
     params: dict = {
-        "Message":{
-            "DueDate": api_due_date,
-            "SortBy": True,
+        "Request":{
             "SystemDate": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
             "Token": api_token,
         }
@@ -173,7 +165,7 @@ def get_delinquent_principal_balances(
         call_api,
         base_url=api_url,
         method="post",
-        endpoint="GetManageDelinqPrinBalanceReportData",
+        endpoint="GetFFIECReportLoans",
         parameters=params,
     )
 
@@ -184,7 +176,6 @@ def run_module():
         fics_api_url=dict(type="str", required=True, no_log=False),
         api_token=dict(type="str", required=True, no_log=True),
         api_log_directory=dict(type="str", required=False, no_log=False),
-        api_due_date=dict(type="str", required=True, no_log=False),
     )    
 
     # seed the result dict in the object
@@ -203,7 +194,6 @@ def run_module():
     api_url: str = module.params["fics_api_url"]
     api_token: str = module.params["api_token"]
     api_log_directory: str = module.params["api_log_directory"]
-    api_due_date: str = module.params["api_due_date"]
     dest: str = module.params["dest"]
 
     # if the user is working with this module in only check mode we do not
@@ -212,11 +202,10 @@ def run_module():
     if module.check_mode:
         module.exit_json(**result)
 
-    trial_resp: dict = get_delinquent_principal_balances(
+    trial_resp: dict = get_ffiec_call_report(
         api_url=api_url, 
         api_token=api_token, 
         api_log_directory=api_log_directory,
-        api_due_date=api_due_date,
     )
 
     if trial_resp is None:
@@ -238,9 +227,9 @@ def run_module():
                 )
             base64_file = trial_resp.get("Document", {}).get("DocumentBase64", None)
             if base64_file:
-                delinquent_report = base64.b64decode(base64_file)
-                with open(module.params["dest"], "wb") as delinquent_report_file:
-                    delinquent_report_file.write(delinquent_report)
+                ffiec_call_report = base64.b64decode(base64_file)
+                with open(module.params["dest"], "wb") as ffiec_call_report_file:
+                    ffiec_call_report_file.write(ffiec_call_report)
                 result["changed"] = True
                 result["failed"] = False
                 result["msg"] = f"Wrote file at {module.params['dest']}"

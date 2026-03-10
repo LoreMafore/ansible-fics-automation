@@ -11,21 +11,22 @@ import logging
 import os
 import base64
 from datetime import datetime
+import calendar
 
 __metaclass__ = type
 
 DOCUMENTATION = r"""
 ---
-module: get_delinquent_principal_balances
+module: get_interest_accrual_report
 
-short_description: Calls the FICS Mortgage Servicer special services API to generate a document containing all the Delinquent Principal Balances.
+short_description: Calls the FICS Mortgage Servicer special services API to generate a document containing all the Interest Accrual Reports.
 
 # If this is part of a collection, you need to use semantic versioning,
 # i.e. the version is of the form "2.5.0" and not "2.4".
-version_added: "3.1.0"
+version_added: "3.3.0"
 
 description:
-    - Calls the FICS Mortgage Servicer special services API to create the Delinquent Principal Balances file at the specified destination. 
+    - Calls the FICS Mortgage Servicer special services API to create the Interest Accrual Reports file at the specified destination.
     - Disclaimer: this module has only been tested for our exact use case
 
 author:
@@ -58,8 +59,8 @@ options:
 
 EXAMPLES = r"""
 - name: create file to send
-  get_delinquent_principal_balances:
-    dest: /mnt/fics_deliq/IT/Backups/fics/delinquent_principal_balance_2026-02-07
+  get_interest_accrual_report:
+    dest: /mnt/fics_deliq/IT/Backups/fics/interest_accrual_report.pdf
     fics_api_url: http://mortgageservicer.fics/BatchService.svc/REST/
     api_token: ASDFASDFJSDFSHFJJSDGFSJGQWEUI123123SDFSDFJ12312801C15034264BC98B33619F4A547AECBDD412D46A24D2560D5EFDD8DEDFE74325DC2E7B156C60B942
     api_due_date: 2026-01-31T23:59:59"
@@ -71,7 +72,7 @@ msg:
     description: The result message of the download operation
     type: str
     returned: always
-    sample: '"Wrote files to /mnt/fics_deliq/IT/Backups/fics/delinquent_principal_balance_2026-02-07"'
+    sample: '"Wrote files to /mnt/fics_deliq/IT/Backups/fics/interest_accrual_report.pdf"'
 changed:
     description: Whether any local files were changed
     type: bool
@@ -82,7 +83,9 @@ api_response:
     type: str
     returned: always
 """
-
+ACTUAL : int = 1
+BANKINVGROUP : int = 3
+FACTOR360 : int = 0
 
 def log_function_call(log_path: str, func: Callable[..., Any], *args, **kwargs) -> Any:
     # Ensure the directory for the log file exists
@@ -154,7 +157,38 @@ def call_api(base_url: str, method: str, endpoint: str, parameters: dict):
         return None
 
 
-def get_delinquent_principal_balances(
+def get_start_date(due_date):
+    current_date = datetime.fromisoformat(due_date)
+
+    if current_date.month == 1:
+        prev_month = 12 
+        prev_year = current_date.year -1 
+
+    else: 
+        prev_month = current_date.month - 1
+        prev_year = current_date.year
+
+    day_1 = current_date.replace(year=prev_year, month=prev_month, day=1, hour=0, minute=0, second=0)
+    return day_1.isoformat()
+
+
+def get_end_date(due_date):
+    current_date = datetime.fromisoformat(due_date)
+
+    if current_date.month == 1:
+        prev_month = 12 
+        prev_year = current_date.year -1 
+
+    else: 
+        prev_month = current_date.month - 1
+        prev_year = current_date.year
+    
+    last_day = calendar.monthrange(prev_year, prev_month)[1]
+    day_n = current_date.replace(year=prev_year, month=prev_month, day=last_day, hour=23, minute=59, second=59)
+    return day_n.isoformat()
+
+
+def get_interest_accrual(
     api_url: str, 
     api_token: str, 
     api_log_directory: str,
@@ -162,8 +196,18 @@ def get_delinquent_principal_balances(
 ) -> dict:
     params: dict = {
         "Message":{
-            "DueDate": api_due_date,
-            "SortBy": True,
+            "SelectedCalculationMethod": ACTUAL,
+            "SelectedSortMethod": BANKINVGROUP,
+            "IncludePIFLoans": False,
+		    "IncludeNonAccruals": False,
+		    "IncludeSoldLoans": False,
+		    "SeparateDelinquentLoans": False,
+		    "LoanPlanPageBreak": False,
+		    "InvestorPageBreak": True,
+		    "AccrualInterestRate": ".00000",
+            "SelectedCalculationFactor": FACTOR360,
+            "AccrueInterestStartDate": get_start_date(api_due_date),
+		    "AccrueInterestEndDate": get_end_date(api_due_date),
             "SystemDate": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
             "Token": api_token,
         }
@@ -173,7 +217,7 @@ def get_delinquent_principal_balances(
         call_api,
         base_url=api_url,
         method="post",
-        endpoint="GetManageDelinqPrinBalanceReportData",
+        endpoint="RunInterestAccrual",
         parameters=params,
     )
 
@@ -212,7 +256,7 @@ def run_module():
     if module.check_mode:
         module.exit_json(**result)
 
-    trial_resp: dict = get_delinquent_principal_balances(
+    trial_resp: dict = get_interest_accrual(
         api_url=api_url, 
         api_token=api_token, 
         api_log_directory=api_log_directory,
@@ -236,11 +280,17 @@ def run_module():
                     changed=False,
                     failed=True,
                 )
-            base64_file = trial_resp.get("Document", {}).get("DocumentBase64", None)
+
+            doc_collection = trial_resp.get("DocumentCollection", [])
+            if doc_collection and len(doc_collection) > 0:
+                base64_file = doc_collection[0].get("DocumentBase64", None)
+            else:
+                base64_file = None
+
             if base64_file:
-                delinquent_report = base64.b64decode(base64_file)
-                with open(module.params["dest"], "wb") as delinquent_report_file:
-                    delinquent_report_file.write(delinquent_report)
+                interest_accrual_report = base64.b64decode(base64_file)
+                with open(module.params["dest"], "wb") as interest_accrual_report_file:
+                    interest_accrual_report_file.write(interest_accrual_report)
                 result["changed"] = True
                 result["failed"] = False
                 result["msg"] = f"Wrote file at {module.params['dest']}"
