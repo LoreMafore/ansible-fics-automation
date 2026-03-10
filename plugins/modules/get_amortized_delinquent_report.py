@@ -22,7 +22,7 @@ short_description: Calls the FICS Mortgage Servicer special services API to gene
 
 # If this is part of a collection, you need to use semantic versioning,
 # i.e. the version is of the form "2.5.0" and not "2.4".
-version_added: "3.2.0"
+version_added: "3.7.1"
 
 description:
     - Calls the FICS Mortgage Servicer special services API to create the Amortized Delinquent Reports file at the specified destination.
@@ -46,11 +46,10 @@ options:
         description: this is the api token used for authentication to the API
         required: true
         type: str
-    api_due_date:
-        description: this is the date the application is due
-        required: true
+    api_log_directory:
+        description: this is the directory that the API logs will be created in
+        required: false
         type: str
-
 """
 
 EXAMPLES = r"""
@@ -60,6 +59,7 @@ EXAMPLES = r"""
     fics_api_url: http://mortgageservicer.fics/BatchService.svc/REST/
     api_token: ASDFASDFJSDFSHFJJSDGFSJGQWEUI123123SDFSDFJ12312801C15034264BC98B33619F4A547AECBDD412D46A24D2560D5EFDD8DEDFE74325DC2E7B156C60B942
     api_due_date: 2026-01-31T23:59:59"
+    api_log_directory: /tmp/api_logs/
 """
 
 RETURN = r"""
@@ -149,16 +149,30 @@ def call_api(base_url: str, method: str, endpoint: str, parameters: dict):
         )
         return None
 
+def get_due_date():
+
+    current_date = datetime.now()
+
+    if current_date.month == 1:
+        prev_month = 12 
+        prev_year = current_date.year -1 
+
+    else: 
+        prev_month = current_date.month - 1
+        prev_year = current_date.year
+
+    due_date = current_date.replace(year=prev_year, month=prev_month, day=1, hour=0, minute=0, second=0)
+    return due_date.isoformat()
+
 
 def get_amortized_delinquent(
     api_url: str, 
     api_token: str, 
     api_log_directory: str,
-    api_due_date: str,
 ) -> dict:
     params: dict = {
         "Message":{
-            "DueDate": api_due_date,
+            "DueDate": get_due_date(),
             "IncludeForeclosedLoans": False,
             "Summarize": False,
             "SystemDate": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
@@ -181,7 +195,6 @@ def run_module():
         fics_api_url=dict(type="str", required=True, no_log=False),
         api_token=dict(type="str", required=True, no_log=True),
         api_log_directory=dict(type="str", required=False, no_log=False),
-        api_due_date=dict(type="str", required=True, no_log=False),
     )    
 
     # seed the result dict in the object
@@ -200,7 +213,6 @@ def run_module():
     api_url: str = module.params["fics_api_url"]
     api_token: str = module.params["api_token"]
     api_log_directory: str = module.params["api_log_directory"]
-    api_due_date: str = module.params["api_due_date"]
     dest: str = module.params["dest"]
 
     # if the user is working with this module in only check mode we do not
@@ -213,7 +225,6 @@ def run_module():
         api_url=api_url, 
         api_token=api_token, 
         api_log_directory=api_log_directory,
-        api_due_date=api_due_date,
     )
 
     if trial_resp is None:
