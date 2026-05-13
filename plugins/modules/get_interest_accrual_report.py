@@ -169,7 +169,7 @@ def get_start_date(due_date):
         prev_year = current_date.year
 
     day_1 = current_date.replace(year=prev_year, month=prev_month, day=1, hour=0, minute=0, second=0)
-    return day_1.isoformat()
+    return day_1.strftime("%Y-%m-%d")
 
 
 def get_end_date(due_date):
@@ -185,7 +185,7 @@ def get_end_date(due_date):
     
     last_day = calendar.monthrange(prev_year, prev_month)[1]
     day_n = current_date.replace(year=prev_year, month=prev_month, day=last_day, hour=23, minute=59, second=59)
-    return day_n.isoformat()
+    return day_n.strftime("%Y-%m-%d")
 
 
 def get_interest_accrual(
@@ -208,10 +208,10 @@ def get_interest_accrual(
 		    "InvestorPageBreak": True,
             "SelectedCalculationFactor": 0,
             # "SelectedCalculationFactor": FACTOR360,
-            "AccrueInterestStartDate": "2026-05-01",
-            # "AccrueInterestStartDate": get_start_date(api_due_date),
-		    "AccrueInterestEndDate": "2026-05-31",
-		    # "AccrueInterestEndDate": get_end_date(api_due_date),
+            # "AccrueInterestStartDate": "2026-05-01",
+            "AccrueInterestStartDate": get_start_date(api_due_date),
+		    # "AccrueInterestEndDate": "2026-05-31",
+		    "AccrueInterestEndDate": get_end_date(api_due_date),
             "SystemDate": "2026-05-13T09:47:35",
             # "SystemDate": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
             "Token": api_token,
