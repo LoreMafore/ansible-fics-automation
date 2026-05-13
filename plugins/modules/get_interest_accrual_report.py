@@ -196,24 +196,22 @@ def get_interest_accrual(
 ) -> dict:
     params: dict = {
         "Message":{
-            "SelectedCalculationMethod": 1,
-            # "SelectedCalculationMethod": ACTUAL,
-            "SelectedSortMethod": 3,
-            # "SelectedSortMethod": BANKINVGROUP,
+            # "SelectedCalculationMethod": 1,
+            "SelectedCalculationMethod": ACTUAL,
+            # "SelectedSortMethod": 3,
+            "SelectedSortMethod": BANKINVGROUP,
             "IncludePIFLoans": False,
 		    "IncludeNonAccruals": False,
 		    "IncludeSoldLoans": False,
 		    "SeparateDelinquentLoans": False,
 		    "LoanPlanPageBreak": False,
 		    "InvestorPageBreak": True,
-            "SelectedCalculationFactor": 0,
-            # "SelectedCalculationFactor": FACTOR360,
-            # "AccrueInterestStartDate": "2026-05-01",
+            # "SelectedCalculationFactor": 0,
+            "SelectedCalculationFactor": FACTOR360,
             "AccrueInterestStartDate": get_start_date(api_due_date),
-		    # "AccrueInterestEndDate": "2026-05-31",
 		    "AccrueInterestEndDate": get_end_date(api_due_date),
-            "SystemDate": "2026-05-13T09:47:35",
-            # "SystemDate": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+            # "SystemDate": "2026-05-13T09:47:35",
+            "SystemDate": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
             "Token": api_token,
         }
     }
