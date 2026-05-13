@@ -158,34 +158,34 @@ def call_api(base_url: str, method: str, endpoint: str, parameters: dict):
 
 
 def get_start_date(due_date):
-    current_date = datetime.fromisoformat(due_date)
+    current_date: datetime = datetime.fromisoformat(due_date)
 
     if current_date.month == 1:
-        prev_month = 12 
-        prev_year = current_date.year -1 
+        prev_month: int = 12 
+        prev_year: int = current_date.year -1 
 
     else: 
-        prev_month = current_date.month - 1
-        prev_year = current_date.year
+        prev_month: int = current_date.month - 1
+        prev_year: int = current_date.year
 
-    day_1 = current_date.replace(year=prev_year, month=prev_month, day=1, hour=0, minute=0, second=0)
-    return day_1.isoformat()
+    day_1: datetime = current_date.replace(year=prev_year, month=prev_month, day=1, hour=0, minute=0, second=0)
+    return day_1.strftime("%Y-%m-%d")
 
 
 def get_end_date(due_date):
-    current_date = datetime.fromisoformat(due_date)
+    current_date: datetime = datetime.fromisoformat(due_date)
 
     if current_date.month == 1:
-        prev_month = 12 
-        prev_year = current_date.year -1 
+        prev_month: int = 12 
+        prev_year: int = current_date.year -1 
 
     else: 
-        prev_month = current_date.month - 1
-        prev_year = current_date.year
+        prev_month: int = current_date.month - 1
+        prev_year: int = current_date.year
     
-    last_day = calendar.monthrange(prev_year, prev_month)[1]
-    day_n = current_date.replace(year=prev_year, month=prev_month, day=last_day, hour=23, minute=59, second=59)
-    return day_n.isoformat()
+    last_day: int = calendar.monthrange(prev_year, prev_month)[1]
+    day_n: datetime = current_date.replace(year=prev_year, month=prev_month, day=last_day, hour=23, minute=59, second=59)
+    return day_n.strftime("%Y-%m-%d")
 
 
 def get_interest_accrual(
@@ -204,7 +204,6 @@ def get_interest_accrual(
 		    "SeparateDelinquentLoans": False,
 		    "LoanPlanPageBreak": False,
 		    "InvestorPageBreak": True,
-		    "AccrualInterestRate": ".00000",
             "SelectedCalculationFactor": FACTOR360,
             "AccrueInterestStartDate": get_start_date(api_due_date),
 		    "AccrueInterestEndDate": get_end_date(api_due_date),
