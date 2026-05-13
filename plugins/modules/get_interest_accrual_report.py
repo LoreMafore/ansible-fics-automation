@@ -204,7 +204,6 @@ def get_interest_accrual(
 		    "SeparateDelinquentLoans": False,
 		    "LoanPlanPageBreak": False,
 		    "InvestorPageBreak": True,
-		    "AccrualInterestRate": ".00000",
             "SelectedCalculationFactor": FACTOR360,
             "AccrueInterestStartDate": get_start_date(api_due_date),
 		    "AccrueInterestEndDate": get_end_date(api_due_date),
