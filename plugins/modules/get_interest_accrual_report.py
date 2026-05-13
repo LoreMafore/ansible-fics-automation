@@ -207,7 +207,8 @@ def get_interest_accrual(
             "SelectedCalculationFactor": FACTOR360,
             "AccrueInterestStartDate": get_start_date(api_due_date),
 		    "AccrueInterestEndDate": get_end_date(api_due_date),
-            "SystemDate": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+            "SystemDate": "2026-05-13T09:47:35",
+            # "SystemDate": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
             "Token": api_token,
         }
     }
