@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Copyright: (c) 2026, Conrad Mercer <momercers@gmail.com>
 #                      David Villafaña <david.villafana@capcu.org>
