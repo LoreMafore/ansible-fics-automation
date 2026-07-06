@@ -168,7 +168,8 @@ def get_end_date() -> str:
 
     last_day: int = calendar.monthrange(prev_year, prev_month)[1]
     day_n: datetime = current_date.replace(year=prev_year, month=prev_month, day=last_day, hour=23, minute=59, second=59)
-    return day_n.strftime("%Y-%m-%d")
+    # return day_n.strftime("%Y-%m-%d")
+    return "2026-07-06"
 
 
 def get_amortized_loan_statement(
