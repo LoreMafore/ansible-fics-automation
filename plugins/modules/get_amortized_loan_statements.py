@@ -174,8 +174,7 @@ def get_amortized_loan_statement(
     api_url: str, 
     api_token: str, 
     api_log_directory: str,
-    api_update: bool,
-    api_end_point: str
+    api_update: bool
 ) -> dict:
     params: dict = {
         "Message":{
@@ -204,7 +203,7 @@ def get_amortized_loan_statement(
         call_api,
         base_url=api_url,
         method="post",
-        endpoint=api_end_point,
+        endpoint="RunAmortizedLoanStatement",
         parameters=params,
     )
 
@@ -216,7 +215,6 @@ def run_module():
         api_token=dict(type="str", required=True, no_log=True),
         api_log_directory=dict(type="str", required=False, no_log=False),
         api_update=dict(type="str", required=True, no_log=False),
-        api_end_point=dict(type="str", required=True, no_log=False),
     )    
 
     # seed the result dict in the object
@@ -232,12 +230,11 @@ def run_module():
     # supports check mode
     module = AnsibleModule(argument_spec=module_args, supports_check_mode=False)
 
+    dest: str = module.params["dest"]
     api_url: str = module.params["fics_api_url"]
     api_token: str = module.params["api_token"]
     api_log_directory: str = module.params["api_log_directory"]
     api_update: str = module.params["api_update"]
-    api_end_point: str = module.params["api_end_point"]
-    dest: str = module.params["dest"]
 
     # if the user is working with this module in only check mode we do not
     # want to make any changes to the environment, just return the current
@@ -250,15 +247,13 @@ def run_module():
         api_token=api_token, 
         api_log_directory=api_log_directory,
         api_update=api_update,
-        api_end_point=api_end_point,
     )
 
     if trial_resp is None:
         module.fail_json(
             msg="API call returned no response (check HTTP status code in logs)",
             changed=False,
-            failed=True,
-    )
+            failed=True,)
 
     try:
         if trial_resp.get("ApiCallSuccessful", None):
