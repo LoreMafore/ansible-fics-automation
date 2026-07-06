@@ -162,7 +162,8 @@ def get_end_date() -> str:
         prev_year: int = current_date.year - 1
 
     else:
-        prev_month: int = current_date.month - 1
+        # prev_month: int = current_date.month - 1
+        prev_month: int = current_date.month
         prev_year: int = current_date.year
 
     last_day: int = calendar.monthrange(prev_year, prev_month)[1]
