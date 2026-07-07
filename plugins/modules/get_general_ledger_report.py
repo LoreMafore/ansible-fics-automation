@@ -198,7 +198,7 @@ def get_general_ledger_report(
         call_api,
         base_url=api_url,
         method="post",
-        endpoint="GetAccountHistory",
+        endpoint="GetGeneralLedger",
         parameters=params,
     )
 
