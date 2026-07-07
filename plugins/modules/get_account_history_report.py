@@ -263,17 +263,11 @@ def run_module():
                     changed=False,
                     failed=True,
                 )
-
-            doc_collection = trial_resp.get("DocumentCollection", [])
-            if doc_collection and len(doc_collection) > 0:
-                base64_file = doc_collection[0].get("DocumentBase64", None)
-            else:
-                base64_file = None
-
+            base64_file = trial_resp.get("Document", {}).get("DocumentBase64", None)
             if base64_file:
-                interest_accrual_report = base64.b64decode(base64_file)
-                with open(module.params["dest"], "wb") as interest_accrual_report_file:
-                    interest_accrual_report_file.write(interest_accrual_report)
+                amortized_delinquent_report = base64.b64decode(base64_file)
+                with open(module.params["dest"], "wb") as amortized_delinquent_report_file:
+                    amortized_delinquent_report_file.write(amortized_delinquent_report)
                 result["changed"] = True
                 result["failed"] = False
                 result["msg"] = f"Wrote file at {module.params['dest']}"
@@ -290,7 +284,6 @@ def run_module():
                 failed=True,
                 api_response=trial_resp,
             )
-
     except Exception as e:
         module.fail_json(msg=f"failed to create file: {e}", changed=False, failed=True)
 
