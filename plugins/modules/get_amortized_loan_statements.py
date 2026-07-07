@@ -17,22 +17,22 @@ __metaclass__ = type
 
 DOCUMENTATION = r"""
 ---
-module: get_amortized_delinquent_report
+module: get_amortized_loan_statements
 
-short_description: Calls the FICS Mortgage Servicer special services API to generate a document containing all the Amortized Delinquent Reports.
+short_description: Calls the FICS Mortgage Servicer special services API to generate a document containing the Amortized Loan Statements
 
 # If this is part of a collection, you need to use semantic versioning,
 # i.e. the version is of the form "2.5.0" and not "2.4".
-version_added: "3.2.0"
+version_added: "3.8.0"
 
 description:
-    - Calls the FICS Mortgage Servicer special services API to create the Amortized Delinquent Reports file at the specified destination.
+    - Calls the FICS Mortgage Servicer special services API to create the Amortized Loan Statement file at the specified destination.
     - Disclaimer: this module has only been tested for our exact use case
 
 author:
     - Conrad Mercer
 
-requirements: [ ]
+requirements: [ requests ]
 
 options:
     dest:
@@ -47,14 +47,14 @@ options:
         description: this is the api token used for authentication to the API
         required: true
         type: str
-    api_due_date:
-        description: this is the date the application is due
-        required: true
-        type: str
     api_log_directory:
         description: this is the directory that the API logs will be created in
         required: false
         type: str
+    api_update:
+        description: this is a bool that will confirm whether the database is updated
+        required: true
+        type: bool
 """
 
 EXAMPLES = r"""
@@ -63,8 +63,8 @@ EXAMPLES = r"""
     dest: /mnt/fics_deliq/IT/Backups/fics/amortized_delinquent_report.pdf
     fics_api_url: http://mortgageservicer.fics/BatchService.svc/REST/
     api_token: ASDFASDFJSDFSHFJJSDGFSJGQWEUI123123SDFSDFJ12312801C15034264BC98B33619F4A547AECBDD412D46A24D2560D5EFDD8DEDFE74325DC2E7B156C60B942
-    api_due_date: 2026-01-31T23:59:59"
     api_log_directory: /tmp/api_logs/
+    api_due_date: false 
 """
 
 RETURN = r"""
@@ -162,14 +162,14 @@ def get_end_date() -> str:
         prev_year: int = current_date.year - 1
 
     else:
-        # prev_month: int = current_date.month - 1
-        prev_month: int = current_date.month
+        prev_month: int = current_date.month - 1
+        # prev_month: int = current_date.month
         prev_year: int = current_date.year
 
     last_day: int = calendar.monthrange(prev_year, prev_month)[1]
     day_n: datetime = current_date.replace(year=prev_year, month=prev_month, day=last_day, hour=23, minute=59, second=59)
-    # return day_n.strftime("%Y-%m-%d")
-    return "2026-07-06"
+    return day_n.strftime("%Y-%m-%d")
+    # return "2026-07-06"
 
 
 def get_amortized_loan_statement(
