@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 # Copyright: (c) 2026, Conrad Mercer <momercers@gmail.com>
 #                      David Villafaña <david.villafana@capcu.org>
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
