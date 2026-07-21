@@ -23,7 +23,7 @@ short_description: Calls the FICS Mortgage Servicer special services API to gene
 
 # If this is part of a collection, you need to use semantic versioning,
 # i.e. the version is of the form "2.5.0" and not "2.4".
-version_added: "3.8.0"
+version_added: "3.10.0"
 
 description:
     - Calls the FICS Mortgage Servicer special services API to create the Amortized Loan Statement file at the specified destination.
@@ -136,7 +136,6 @@ def call_api(base_url: str, method: str, endpoint: str, parameters: dict):
     }
 
     # Send the POST request
-
     http: dict = {
         "post": requests.post,
         "get": requests.get,
@@ -155,23 +154,6 @@ def call_api(base_url: str, method: str, endpoint: str, parameters: dict):
         return None
 
 
-def get_end_date() -> str:
-    current_date: datetime = datetime.now()
-    if current_date.month == 1:
-        prev_month: int = 12
-        prev_year: int = current_date.year - 1
-
-    else:
-        prev_month: int = current_date.month - 1
-        # prev_month: int = current_date.month
-        prev_year: int = current_date.year
-
-    last_day: int = calendar.monthrange(prev_year, prev_month)[1]
-    day_n: datetime = current_date.replace(year=prev_year, month=prev_month, day=last_day, hour=23, minute=59, second=59)
-    return day_n.strftime("%Y-%m-%d")
-    # return "2026-07-06"
-
-
 def get_amortized_loan_statement(
     api_url: str, 
     api_token: str, 
@@ -180,7 +162,7 @@ def get_amortized_loan_statement(
 ) -> dict:
     params: dict = {
         "Message":{
-            "IncludeAllAmountsDueThrough": get_end_date(),
+            "IncludeAllAmountsDueThrough": datetime.now().strftime("%Y-%m-%d"),
             "ExcludeFees": False,
             "ExcludeAccuredLateCharefes": False,
             "IncludePrepaidLoans": True,

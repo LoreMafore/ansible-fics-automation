@@ -19,6 +19,7 @@
   - [get\_account\_history\_report](#get_account_history_report)
   - [get\_advanced\_selector\_request](#get_advanced_selector_request)
   - [get\_amortized\_delinquent\_report](#get_amortized_delinquent_report)
+  - [get\_amortized\_loan\_statements](#get_amortized_loan_statements)
   - [get\_delinquent\_principal\_balances](#get_delinquent_principal_balances)
   - [get\_ffiec\_call\_report](#get_ffiec_call_report)
   - [get\_general\_ledger\_report](#get_general_ledger_report)
@@ -251,6 +252,44 @@ Calls the FICS Mortgage Servicer Special Services API to generate an Amortized D
 ```yaml
 - name: Generate Amortized Delinquent Report
   dtvillafana.fics.get_amortized_delinquent_report:
+    dest: /data/fics/reports/amortized_delinquent.pdf
+    fics_api_url: https://fics.example.com/SpecialService
+    api_token: "{{ vault_fics_api_token }}"
+    api_due_date: "2026-01-31T23:59:59"
+    api_log_directory: /var/log/fics/api
+```
+
+---
+
+### `get_amortized_loan_statements`
+
+Calls the FICS Mortgage Servicer special services API to create the Amortized Loan Statement file at the specified destination.
+
+**FICS endpoint:** `RunAmortizedLoanStatement`
+
+#### Parameters
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `dest` | str | Yes | Full path where the PDF will be written. Parent directories are created automatically. |
+| `fics_api_url` | str | Yes | Base URL of the FICS Mortgage Servicer Special Services API. |
+| `api_token` | str | Yes | Bearer token used for API authentication. Never logged. |
+| `api_log_directory` | str | No | Directory where API interaction logs will be written. |
+| `api_update` | str | Yes | This is a bool that will confirm whether the database is updated |
+
+#### Return Values
+
+| Key | Type | Description |
+|---|---|---|
+| `msg` | str | Human-readable result, e.g. `"Wrote files to /data/fics/..."` |
+| `changed` | bool | `true` if a file was written to disk. |
+| `api_response` | str | Full API response payload including the base64-encoded document. |
+
+#### Example
+
+```yaml
+- name: Generate Amortized Loan Statement
+  dtvillafana.fics.get_amortized_loan_statement:
     dest: /data/fics/reports/amortized_delinquent.pdf
     fics_api_url: https://fics.example.com/SpecialService
     api_token: "{{ vault_fics_api_token }}"
